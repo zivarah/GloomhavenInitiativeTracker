@@ -21,12 +21,13 @@ export const Tracker: FC<ITrackerProps> = props => {
 	const nextIdRef = useRef(0);
 	const [cookies, setCookie] = useCookies<keyof ICookies, ICookies>(["characters"]);
 	const [characters, setCharacters] = useState<ReadonlyMap<number, ICharacter>>(() => {
-		const characters: ICharacter[] = cookies.characters?.map((c: ICharacterForCookie) => ({
-			type: "character",
-			id: nextIdRef.current++,
-			name: c.name,
-			characterClassId: c.characterClassId,
-		}));
+		const characters: ICharacter[] =
+			cookies.characters?.map((c: ICharacterForCookie) => ({
+				type: "character",
+				id: nextIdRef.current++,
+				name: c.name,
+				characterClassId: c.characterClassId,
+			})) ?? [];
 		return new Map(characters.map(c => [c.id, c]));
 	});
 
