@@ -1,12 +1,11 @@
 import { ITrackableClass, ITrackableClassInfo } from "./TrackableClass";
 
-export interface IMonster extends ITrackableClass {
-	type: "monster";
-	monsterClassId: MonsterClass;
+export interface IMonster extends ITrackableClass<"monster"> {
+	monsterClass: MonsterClass;
 }
 
 export function isMonster(trackableClass: ITrackableClass): trackableClass is IMonster {
-	return (trackableClass as IMonster).type === "monster";
+	return trackableClass.type === "monster";
 }
 
 export enum MonsterClass {

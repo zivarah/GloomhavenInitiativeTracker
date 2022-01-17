@@ -1,12 +1,11 @@
 import { ITrackableClass, ITrackableClassInfo } from "./TrackableClass";
 
-export interface ICharacter extends ITrackableClass {
-	type: "character";
-	characterClassId: CharacterClass;
+export interface ICharacter extends ITrackableClass<"character"> {
+	characterClass: CharacterClass;
 }
 
 export function isCharacter(trackableClass: ITrackableClass): trackableClass is ICharacter {
-	return (trackableClass as ICharacter).type === "character";
+	return trackableClass.type === "character";
 }
 
 export enum CharacterClass {

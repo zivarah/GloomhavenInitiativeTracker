@@ -1,19 +1,27 @@
-import React, { FC } from "react";
+import React, { FC, useCallback } from "react";
+import { TrackerAction } from "../model/TrackerState";
 
 interface IRoundActionsProps {
-	onBeginNewRound(): void;
-	onInitiativesComplete(): void;
+	dispatch: React.Dispatch<TrackerAction>;
 }
 
 export const RoundActions: FC<IRoundActionsProps> = props => {
-	const { onBeginNewRound, onInitiativesComplete } = props;
+	const { dispatch } = props;
+
+	const resetForNewRound = useCallback(() => {
+		dispatch({ action: "resetForNewRound" });
+	}, [dispatch]);
+	const beginRound = useCallback(() => {
+		dispatch({ action: "beginRound" });
+	}, [dispatch]);
+
 	return (
 		<div className="roundActionsOuter">
-			<button className="roundActionsButton" onClick={onBeginNewRound}>
-				Begin New Round
+			<button className="roundActionsButton" onClick={resetForNewRound}>
+				New Round
 			</button>
-			<button className="roundActionsButton" onClick={onInitiativesComplete}>
-				Go!
+			<button className="roundActionsButton" onClick={beginRound}>
+				Begin Round
 			</button>
 		</div>
 	);

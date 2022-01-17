@@ -1,50 +1,33 @@
 import React, { ChangeEvent, FC, KeyboardEventHandler, ReactElement, useCallback, useEffect, useRef, useState } from "react";
-import { ITrackableClassInfo } from "../model/TrackableClass";
+import { characterClassInfos, isCharacter } from "../model/Character";
+import { isMonster, monsterClassInfos } from "../model/Monster";
+import { ITrackableClass } from "../model/TrackableClass";
+import { TrackerAction } from "../model/TrackerState";
 
 interface ITrackedClassRowProps {
-	id: number;
-	name: string;
-	initiative: number | undefined;
-	setInitiative(id: number, value: number | undefined): void;
-	turnComplete: boolean;
-	setTurnComplete(id: number, value: boolean): void;
-	classInfo: ITrackableClassInfo;
-	deleteTrackedClass(id: number): void;
+	trackedClass: ITrackableClass;
+	dispatch: React.Dispatch<TrackerAction>;
 	showOptions: boolean;
-	moveDown?(id: number): void;
-	moveUp?(id: number): void;
 }
 
 export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
-	const {
-		id,
-		name,
-		initiative,
-		setInitiative,
-		turnComplete,
-		setTurnComplete,
-		classInfo,
-		deleteTrackedClass,
-		showOptions,
-		moveDown,
-		moveUp,
-	} = props;
+	const { trackedClass, showOptions, dispatch } = props;
 
 	const [editingInitiative, setEditingInitiative] = useState(false);
 
 	const setInitiativeWrapper = useCallback(
-		(newInitiative: number | undefined) => {
-			setInitiative(id, newInitiative);
+		(value: number | undefined) => {
+			dispatch({ action: "setInitiative", id: trackedClass.id, value });
 			setEditingInitiative(false);
 		},
-		[id, setInitiative, setEditingInitiative]
+		[trackedClass.id, setEditingInitiative, dispatch]
 	);
 	const setTurnCompleteWrapper = useCallback(
 		(value: boolean) => {
-			setTurnComplete(id, value);
+			dispatch({ action: "setTurnComplete", id: trackedClass.id, value });
 			setEditingInitiative(false);
 		},
-		[id, setTurnComplete, setEditingInitiative]
+		[trackedClass.id, setEditingInitiative, dispatch]
 	);
 
 	const onInitiativeClick = useCallback(() => {
@@ -58,21 +41,33 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 		[setTurnCompleteWrapper]
 	);
 
-	const onDelete = useCallback(() => deleteTrackedClass(id), [id, deleteTrackedClass]);
-	const onMoveUpWrapper = useCallback(() => moveUp && moveUp(id), [id, moveUp]);
-	const onMoveDownWrapper = useCallback(() => moveDown && moveDown(id), [id, moveDown]);
+	const classInfo = isCharacter(trackedClass)
+		? characterClassInfos[trackedClass.characterClass]
+		: isMonster(trackedClass)
+		? monsterClassInfos[trackedClass.monsterClass]
+		: undefined;
+
+	const onDeleteWrapper = useCallback(() => dispatch({ action: "deleteTrackedClass", id: trackedClass.id }), [trackedClass.id, dispatch]);
+
+	const onMoveDown = useCallback(
+		() => dispatch({ action: "shift", id: trackedClass.id, direction: "down" }),
+		[trackedClass.id, dispatch]
+	);
+	const onMoveUp = useCallback(() => dispatch({ action: "shift", id: trackedClass.id, direction: "up" }), [trackedClass.id, dispatch]);
 
 	let initiativeContent: number | ReactElement | undefined;
-	if (!initiative || editingInitiative) {
-		initiativeContent = <InitiativeEditor initiative={initiative} setInitiative={setInitiativeWrapper} focus={editingInitiative} />;
+	if (!trackedClass.initiative || editingInitiative) {
+		initiativeContent = (
+			<InitiativeEditor initiative={trackedClass.initiative} setInitiative={setInitiativeWrapper} focus={editingInitiative} />
+		);
 	} else {
 		initiativeContent = (
 			<>
 				<div className="initiative" onClick={onInitiativeClick}>
-					{initiative}
+					{trackedClass.initiative}
 				</div>
-				{moveUp && <span className="fa fa-arrow-up" onClick={onMoveUpWrapper} />}
-				{moveDown && <span className="fa fa-arrow-down" onClick={onMoveDownWrapper} />}
+				{trackedClass.tiedWithNext && <span className="fa fa-arrow-down" onClick={onMoveDown} />}
+				{trackedClass.tiedWithPrevious && <span className="fa fa-arrow-up" onClick={onMoveUp} />}
 				{showOptions && <span className="initEdit fa fa-pencil" onClick={onInitiativeClick} />}
 			</>
 		);
@@ -80,13 +75,13 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 
 	return (
 		<div className="charOuter">
-			<input type="checkbox" checked={!!turnComplete} onChange={onTurnCompleteChange} />
+			<input type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
 			<div className="charName">
-				{classInfo.iconKey && <img className="charIcon" src={classInfo.iconKey} alt="" />}
-				{name}
+				{classInfo?.iconKey && <img className="charIcon" src={classInfo.iconKey} alt="" />}
+				{trackedClass.name}
 			</div>
 			<div className="charInit">{initiativeContent}</div>
-			{showOptions && <span className="fa fa-times" onClick={onDelete} />}
+			{showOptions && <span className="fa fa-times" onClick={onDeleteWrapper} />}
 		</div>
 	);
 };
@@ -147,7 +142,7 @@ const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
 				pattern="[0-9]*"
 				min={1}
 				max={99}
-				value={pendingInitiative}
+				value={pendingInitiative ?? ""}
 				onChange={onChange}
 				onKeyDown={onKeyDown}
 				onBlur={onBlur}

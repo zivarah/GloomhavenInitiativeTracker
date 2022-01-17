@@ -1,24 +1,25 @@
-import { ChangeEvent, FC, useCallback, useMemo, useState } from "react";
-import { CharacterClass, characterClassInfos, ICharacter } from "../model/Character";
-import { IMonster, MonsterClass, monsterClassInfos } from "../model/Monster";
+import { ChangeEvent, FC, useCallback, useState } from "react";
+import { CharacterClass, characterClassInfos } from "../model/Character";
+import { MonsterClass, monsterClassInfos } from "../model/Monster";
+import { TrackerAction } from "../model/TrackerState";
 import { getEnumValues } from "../utils/EnumUtils";
 
+export interface IExistingClasses {
+	characters: Set<CharacterClass>;
+	monsters: Set<MonsterClass>;
+}
+
 export interface IClassAdderProps {
-	characters: ReadonlyMap<number, ICharacter>;
-	monsters: ReadonlyMap<number, IMonster>;
-	onAddCharacter(name: string, classId: CharacterClass): void;
-	onAddMonster(classId: MonsterClass): void;
+	existingClasses: IExistingClasses;
+	dispatch: React.Dispatch<TrackerAction>;
 }
 
 export const ClassAdder: FC<IClassAdderProps> = props => {
-	const { characters, monsters, onAddCharacter, onAddMonster } = props;
+	const { existingClasses, dispatch } = props;
 	const [name, setName] = useState("");
-	const [characterClassId, setCharacterClassId] = useState<CharacterClass>();
-	const [monsterClassId, setMonsterClassId] = useState<MonsterClass>();
+	const [characterClass, setCharacterClass] = useState<CharacterClass>();
+	const [monsterClass, setMonsterClass] = useState<MonsterClass>();
 	const [expanded, setExpanded] = useState(true);
-
-	const existingCharacterClasses = useMemo(() => new Set(Array.from(characters.values()).map(c => c.characterClassId)), [characters]);
-	const existingMonsterClasses = useMemo(() => new Set(Array.from(monsters.values()).map(m => m.monsterClassId)), [monsters]);
 
 	const onNameChange = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
@@ -28,34 +29,34 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 	);
 
 	const onCharacterAccept = useCallback(() => {
-		if (name && typeof characterClassId !== "undefined") {
-			onAddCharacter(name, characterClassId);
+		if (name && typeof characterClass !== "undefined") {
+			dispatch({ action: "addCharacter", name, characterClass });
 			setName("");
-			setCharacterClassId(undefined);
+			setCharacterClass(undefined);
 		}
-	}, [name, characterClassId, onAddCharacter]);
+	}, [name, setName, characterClass, setCharacterClass, dispatch]);
 
 	const onMonsterAccept = useCallback(() => {
-		if (typeof monsterClassId !== "undefined") {
-			onAddMonster(monsterClassId);
-			setMonsterClassId(undefined);
+		if (typeof monsterClass !== "undefined") {
+			dispatch({ action: "addMonster", monsterClass });
+			setMonsterClass(undefined);
 		}
-	}, [monsterClassId, onAddMonster]);
+	}, [monsterClass, setMonsterClass, dispatch]);
 
 	const onCharacterClassIdChange = useCallback(
 		(event: ChangeEvent<HTMLSelectElement>) => {
 			const parsedInt = parseInt(event.target.value, 10);
-			setCharacterClassId(parsedInt in CharacterClass ? parsedInt : undefined);
+			setCharacterClass(parsedInt in CharacterClass ? parsedInt : undefined);
 		},
-		[setCharacterClassId]
+		[setCharacterClass]
 	);
 
 	const onMonsterClassIdChange = useCallback(
 		(event: ChangeEvent<HTMLSelectElement>) => {
 			const parsedInt = parseInt(event.target.value, 10);
-			setMonsterClassId(parsedInt in MonsterClass ? parsedInt : undefined);
+			setMonsterClass(parsedInt in MonsterClass ? parsedInt : undefined);
 		},
-		[setMonsterClassId]
+		[setMonsterClass]
 	);
 
 	const onToggleExpand = useCallback(() => setExpanded(!expanded), [expanded, setExpanded]);
@@ -70,27 +71,27 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 				<div>
 					Add a monster:
 					<br />
-					<select className="classAdderInput" value={monsterClassId ?? "default"} onChange={onMonsterClassIdChange}>
+					<select className="classAdderInput" value={monsterClass ?? "default"} onChange={onMonsterClassIdChange}>
 						<option value="default">&lt;Class&gt;</option>
 						{getEnumValues(MonsterClass)
-							.filter(classId => !existingMonsterClasses.has(classId))
+							.filter(classId => !existingClasses.monsters.has(classId))
 							.map(classId => (
 								<option value={classId} key={classId}>
 									{monsterClassInfos[classId].name}
 								</option>
 							))}
 					</select>
-					<button disabled={typeof monsterClassId === "undefined"} onClick={onMonsterAccept}>
+					<button disabled={typeof monsterClass === "undefined"} onClick={onMonsterAccept}>
 						<i className="fa fa-plus" />
 					</button>
 					<br />
 					<br />
 					Add a character:
 					<br />
-					<select className="classAdderInput" value={characterClassId ?? "default"} onChange={onCharacterClassIdChange}>
+					<select className="classAdderInput" value={characterClass ?? "default"} onChange={onCharacterClassIdChange}>
 						<option value="default">&lt;Class&gt;</option>
 						{getEnumValues(CharacterClass)
-							.filter(classId => !existingCharacterClasses.has(classId))
+							.filter(classId => !existingClasses.characters.has(classId))
 							.map(classId => (
 								<option value={classId} key={classId}>
 									{characterClassInfos[classId].name}
@@ -98,7 +99,7 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 							))}
 					</select>
 					<input className="classAdderInput classAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
-					<button disabled={!name || typeof characterClassId === "undefined"} onClick={onCharacterAccept}>
+					<button disabled={!name || typeof characterClass === "undefined"} onClick={onCharacterAccept}>
 						<i className="fa fa-plus" />
 					</button>
 				</div>
