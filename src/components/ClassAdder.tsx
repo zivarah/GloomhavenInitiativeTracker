@@ -97,7 +97,7 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 								</option>
 							))}
 					</select>
-					<input className="classAdderInput" value={name} onChange={onNameChange} placeholder="Name" />
+					<input className="classAdderInput classAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
 					<button disabled={!name || typeof characterClassId === "undefined"} onClick={onCharacterAccept}>
 						<i className="fa fa-plus" />
 					</button>
