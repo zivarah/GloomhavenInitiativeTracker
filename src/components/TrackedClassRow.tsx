@@ -143,7 +143,8 @@ const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
 				className="initInput"
 				ref={inputRef}
 				type="text"
-				pattern="\d*"
+				inputMode="numeric"
+				pattern="[0-9]*"
 				min={1}
 				max={99}
 				value={pendingInitiative}
