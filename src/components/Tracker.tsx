@@ -21,8 +21,12 @@ export const Tracker: FC<ITrackerProps> = props => {
 	const onMenuClick = useCallback(() => setshowOptions(!showOptions), [showOptions, setshowOptions]);
 
 	useEffect(() => {
-		setCookie("characters", state.cookie?.characters);
-		setCookie("monsters", state.cookie?.monsters);
+		if (state.cookie?.characters) {
+			setCookie("characters", state.cookie?.characters);
+		}
+		if (state.cookie?.monsters) {
+			setCookie("monsters", state.cookie?.monsters);
+		}
 	}, [setCookie, state.cookie]);
 
 	const existingClasses = useMemo((): IExistingClasses => {

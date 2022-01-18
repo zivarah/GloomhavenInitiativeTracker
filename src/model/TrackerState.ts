@@ -3,8 +3,8 @@ import { IMonster, isMonster, MonsterClass, monsterClassInfos } from "./Monster"
 import { ITrackableClass } from "./TrackableClass";
 
 export interface ICookie {
-	characters: ICharacterForCookie[];
-	monsters: IMonsterForCookie[];
+	characters?: ICharacterForCookie[];
+	monsters?: IMonsterForCookie[];
 }
 
 interface ICharacterForCookie {
@@ -28,8 +28,12 @@ export function createInitialState(cookie?: ICookie): ITrackerState {
 		phase: RoundPhase.choosingInitiative,
 		cookie,
 	};
-	cookie?.characters?.forEach(c => addCharacter(initialState, c.name, c.characterClass));
-	cookie?.monsters?.forEach(m => addMonster(initialState, m.monsterClass));
+	if (Array.isArray(cookie?.characters)) {
+		cookie?.characters?.forEach(c => addCharacter(initialState, c.name, c.characterClass));
+	}
+	if (Array.isArray(cookie?.monsters)) {
+		cookie?.monsters?.forEach(m => addMonster(initialState, m.monsterClass));
+	}
 	return initialState;
 }
 
@@ -91,7 +95,7 @@ export function addMonster(state: ITrackerState, monsterClassId: MonsterClass): 
 	};
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newMonster.id, newMonster);
 	state.orderedIds = [...state.orderedIds, newMonster.id];
-	updateCookie(state);
+	updateOnTrackedClassesChanged(state);
 }
 
 export function addCharacter(state: ITrackerState, name: string, characterClassId: CharacterClass): void {
@@ -104,7 +108,7 @@ export function addCharacter(state: ITrackerState, name: string, characterClassI
 
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newCharacter.id, newCharacter);
 	state.orderedIds = [...state.orderedIds, newCharacter.id];
-	updateCookie(state);
+	updateOnTrackedClassesChanged(state);
 }
 
 function deleteTrackedClass(state: ITrackerState, idToDelete: number): void {
@@ -112,7 +116,7 @@ function deleteTrackedClass(state: ITrackerState, idToDelete: number): void {
 	newTrackedClassesById.delete(idToDelete);
 	state.trackedClassesById = newTrackedClassesById;
 	state.orderedIds = state.orderedIds.filter(id => id !== idToDelete);
-	updateCookie(state);
+	updateOnTrackedClassesChanged(state);
 }
 
 function setInitiative(state: ITrackerState, id: number, value: number | undefined): void {
@@ -191,8 +195,13 @@ function updateCookie(state: ITrackerState): void {
 			monsterClass: m.monsterClass,
 		})),
 	};
-	// Simple and effective deep object comparison, but not perfect
+	// Simple and fairly effective deep object comparison, but not perfect
 	if (JSON.stringify(cookie) !== JSON.stringify(state.cookie)) {
 		state.cookie = cookie;
 	}
+}
+
+function updateOnTrackedClassesChanged(state: ITrackerState): void {
+	updateTieProps(state);
+	updateCookie(state);
 }
