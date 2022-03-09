@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FC, KeyboardEventHandler, ReactElement, useCallback, useEffect, useRef, useState } from "react";
-import { characterClassInfos, isCharacter } from "../model/Character";
-import { isMonster, monsterClassInfos } from "../model/Monster";
+import { isCharacter } from "../model/Character";
+import { isSummon } from "../model/Summon";
 import { ITrackableClass } from "../model/TrackableClass";
 import { TrackerAction } from "../model/TrackerState";
 
@@ -41,48 +41,56 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 		[setTurnCompleteWrapper]
 	);
 
-	const classInfo = isCharacter(trackedClass)
-		? characterClassInfos[trackedClass.characterClass]
-		: isMonster(trackedClass)
-		? monsterClassInfos[trackedClass.monsterClass]
-		: undefined;
+	const onDeleteWrapper = useCallback(() => {
+		if (isSummon(trackedClass)) {
+			dispatch({ action: "deleteSummon", characterId: trackedClass.characterId, summonId: trackedClass.id });
+		} else {
+			dispatch({ action: "deleteTrackedClass", id: trackedClass.id });
+		}
+	}, [trackedClass, dispatch]);
 
-	const onDeleteWrapper = useCallback(() => dispatch({ action: "deleteTrackedClass", id: trackedClass.id }), [trackedClass.id, dispatch]);
-
-	const onMoveDown = useCallback(
-		() => dispatch({ action: "shift", id: trackedClass.id, direction: "down" }),
-		[trackedClass.id, dispatch]
-	);
-	const onMoveUp = useCallback(() => dispatch({ action: "shift", id: trackedClass.id, direction: "up" }), [trackedClass.id, dispatch]);
+	const onMoveDown = useCallback(() => dispatch({ action: "shift", id: trackedClass.id, direction: "down" }), [trackedClass, dispatch]);
+	const onMoveUp = useCallback(() => dispatch({ action: "shift", id: trackedClass.id, direction: "up" }), [trackedClass, dispatch]);
 
 	let initiativeContent: number | ReactElement | undefined;
-	if (!trackedClass.initiative || editingInitiative) {
+
+	const showTieBreakers = !isSummon(trackedClass);
+
+	const containerClassNames = ["charOuter"];
+	if (isSummon(trackedClass)) {
+		containerClassNames.push("summonOuter");
+		initiativeContent = <div className="initiative" />;
+	} else if (!trackedClass.initiative || editingInitiative) {
 		initiativeContent = (
 			<InitiativeEditor initiative={trackedClass.initiative} setInitiative={setInitiativeWrapper} focus={editingInitiative} />
 		);
 	} else {
 		initiativeContent = (
-			<>
-				<div className="initiative" onClick={onInitiativeClick}>
-					{trackedClass.initiative}
-				</div>
-				{trackedClass.tiedWithNext && <span className="fa fa-arrow-down" onClick={onMoveDown} />}
-				{trackedClass.tiedWithPrevious && <span className="fa fa-arrow-up" onClick={onMoveUp} />}
-				{showOptions && <span className="initEdit fa fa-pencil" onClick={onInitiativeClick} />}
-			</>
+			<div className="initiative" onClick={onInitiativeClick}>
+				{trackedClass.initiative}
+			</div>
 		);
 	}
 
+	const activeSummons = isCharacter(trackedClass) ? trackedClass.activeSummons : undefined;
+
 	return (
-		<div className="charOuter">
-			<input type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
-			<div className="charName">
-				{classInfo?.iconKey && <img className="charIcon" src={classInfo.iconKey} alt="" />}
-				{trackedClass.name}
+		<>
+			{activeSummons?.map(summon => (
+				<TrackedClassRow key={summon.id} dispatch={dispatch} trackedClass={summon} showOptions={showOptions} />
+			))}
+			<div className={containerClassNames.join(" ")}>
+				<input type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
+				<div className={"charName"}>
+					{trackedClass.iconKey && <img className="charIcon" src={trackedClass.iconKey} alt="" />}
+					{trackedClass.name}
+				</div>
+				<div className="charInit">{initiativeContent}</div>
+				<OptionIcon iconKey="arrow-down" visible={showTieBreakers && !!trackedClass.tiedWithNext} onClick={onMoveDown} />
+				<OptionIcon iconKey="arrow-up" visible={showTieBreakers && !!trackedClass.tiedWithPrevious} onClick={onMoveUp} />
+				<OptionIcon iconKey="times" visible={showOptions} className="delete" onClick={onDeleteWrapper} />
 			</div>
-			<div className="charInit">{initiativeContent}</div>
-			{showOptions && <span className="fa fa-times" onClick={onDeleteWrapper} />}
-		</div>
+		</>
 	);
 };
 
@@ -133,21 +141,19 @@ const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
 	}, [focus]);
 
 	return (
-		<div>
-			<input
-				className="initInput"
-				ref={inputRef}
-				type="text"
-				inputMode="numeric"
-				pattern="[0-9]*"
-				min={1}
-				max={99}
-				value={pendingInitiative ?? ""}
-				onChange={onChange}
-				onKeyDown={onKeyDown}
-				onBlur={onBlur}
-			/>
-		</div>
+		<input
+			className="initInput"
+			ref={inputRef}
+			type="text"
+			inputMode="numeric"
+			pattern="[0-9]*"
+			min={1}
+			max={99}
+			value={pendingInitiative ?? ""}
+			onChange={onChange}
+			onKeyDown={onKeyDown}
+			onBlur={onBlur}
+		/>
 	);
 };
 function validateInitiative(valueStr: string | undefined): number | undefined {
@@ -167,3 +173,18 @@ function validateInitiative(valueStr: string | undefined): number | undefined {
 	}
 	return value;
 }
+
+interface IOptionIconProps {
+	visible: boolean;
+	iconKey: string;
+	onClick: () => void;
+	className?: string;
+}
+const OptionIcon: FC<IOptionIconProps> = props => {
+	const { visible, iconKey, onClick, className } = props;
+	const classNames = ["optionIcon"];
+	if (className) {
+		classNames.push(className);
+	}
+	return <div className={classNames.join(" ")}>{visible && <span className={"fa fa-" + iconKey} onClick={onClick} />}</div>;
+};

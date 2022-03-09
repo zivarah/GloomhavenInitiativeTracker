@@ -9,7 +9,7 @@ export function isMonster(trackableClass: ITrackableClass): trackableClass is IM
 }
 
 export enum MonsterClass {
-	ancientArtillery,
+	ancientArtillery = 1,
 	banditArcher,
 	banditGuard,
 	blackImp,

@@ -1,6 +1,7 @@
 import { ChangeEvent, FC, useCallback, useState } from "react";
 import { CharacterClass, characterClassInfos } from "../model/Character";
 import { MonsterClass, monsterClassInfos } from "../model/Monster";
+import { ItemSummonables } from "../model/Summon";
 import { TrackerAction } from "../model/TrackerState";
 import { getEnumValues } from "../utils/EnumUtils";
 
@@ -29,7 +30,7 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 	);
 
 	const onCharacterAccept = useCallback(() => {
-		if (name && typeof characterClass !== "undefined") {
+		if (name && characterClass) {
 			dispatch({ action: "addCharacter", name, characterClass });
 			setName("");
 			setCharacterClass(undefined);
@@ -37,7 +38,7 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 	}, [name, setName, characterClass, setCharacterClass, dispatch]);
 
 	const onMonsterAccept = useCallback(() => {
-		if (typeof monsterClass !== "undefined") {
+		if (monsterClass) {
 			dispatch({ action: "addMonster", monsterClass });
 			setMonsterClass(undefined);
 		}
@@ -81,7 +82,7 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 								</option>
 							))}
 					</select>
-					<button disabled={typeof monsterClass === "undefined"} onClick={onMonsterAccept}>
+					<button disabled={!monsterClass} onClick={onMonsterAccept}>
 						<i className="fa fa-plus" />
 					</button>
 					<br />
@@ -99,11 +100,81 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 							))}
 					</select>
 					<input className="classAdderInput classAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
-					<button disabled={!name || typeof characterClass === "undefined"} onClick={onCharacterAccept}>
+					<button disabled={!name || !characterClass} onClick={onCharacterAccept}>
 						<i className="fa fa-plus" />
 					</button>
+					<br />
+					<br />
+					<SummonAdder existingCharacterClasses={existingClasses.characters} dispatch={dispatch} />
 				</div>
 			)}
 		</div>
+	);
+};
+
+interface ISummonAdderProps {
+	existingCharacterClasses: Set<CharacterClass>;
+	dispatch: React.Dispatch<TrackerAction>;
+}
+const SummonAdder: FC<ISummonAdderProps> = props => {
+	const { existingCharacterClasses, dispatch } = props;
+	const [selectedClass, setSelectedClass] = useState<CharacterClass>();
+	const [selectedSummon, setSelectedSummon] = useState<string>();
+
+	const onClassChange = useCallback(
+		(event: ChangeEvent<HTMLSelectElement>) => {
+			const parsedInt = parseInt(event.target.value, 10);
+			setSelectedClass(parsedInt in CharacterClass ? parsedInt : undefined);
+		},
+		[setSelectedClass]
+	);
+	const onSummonChange = useCallback(
+		(event: ChangeEvent<HTMLSelectElement>) => {
+			const summon = event.target.value;
+			setSelectedSummon(summon === "default" ? undefined : summon);
+		},
+		[setSelectedSummon]
+	);
+
+	const onAccept = useCallback(() => {
+		if (selectedClass && selectedSummon) {
+			dispatch({ action: "addSummon", name: selectedSummon, characterClass: selectedClass }); //TODO
+			setSelectedClass(undefined);
+			setSelectedSummon(undefined);
+		}
+	}, [selectedClass, selectedSummon, setSelectedClass, setSelectedSummon]);
+
+	//TODO: feed this the actual character names
+
+	const summonableAllies: string[] = [];
+	if (selectedClass) {
+		summonableAllies.push(...(characterClassInfos[selectedClass].summonableAllies || []));
+		summonableAllies.push(...ItemSummonables);
+	}
+
+	return (
+		<>
+			Add a summon:
+			<br />
+			<select className="classAdderInput" value={selectedClass ?? "default"} onChange={onClassChange}>
+				<option value="default">&lt;Character&gt;</option>
+				{Array.from(existingCharacterClasses).map(classId => (
+					<option value={classId} key={classId}>
+						{characterClassInfos[classId].name}
+					</option>
+				))}
+			</select>
+			<select className="classAdderInput" value={selectedSummon ?? "default"} onChange={onSummonChange} disabled={!selectedClass}>
+				<option value="default">&lt;Summon&gt;</option>
+				{summonableAllies.map(name => (
+					<option value={name} key={name}>
+						{name}
+					</option>
+				))}
+			</select>
+			<button disabled={!selectedClass || !selectedSummon} onClick={onAccept}>
+				<i className="fa fa-plus" />
+			</button>
+		</>
 	);
 };

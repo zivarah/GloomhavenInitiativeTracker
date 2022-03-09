@@ -1,4 +1,4 @@
-import { CharacterClass, ICharacter } from "./Character";
+import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
 import { IMonster, MonsterClass, monsterClassInfos } from "./Monster";
 import { ITrackableClass } from "./TrackableClass";
 
@@ -37,7 +37,9 @@ export function createInitialState(cookie?: ICookie): ITrackerState {
 export type TrackerAction =
 	| { action: "addMonster"; monsterClass: MonsterClass }
 	| { action: "addCharacter"; characterClass: CharacterClass; name: string }
+	| { action: "addSummon"; characterClass: CharacterClass; name: string }
 	| { action: "deleteTrackedClass"; id: number }
+	| { action: "deleteSummon"; characterId: number; summonId: number }
 	| { action: "setInitiative"; id: number; value: number | undefined }
 	| { action: "setTurnComplete"; id: number; value: boolean }
 	| { action: "resetForNewRound" }
@@ -53,8 +55,14 @@ export function updateTrackerState(prevState: ITrackerState, action: TrackerActi
 		case "addCharacter":
 			addCharacter(newState, action.name, action.characterClass);
 			break;
+		case "addSummon":
+			addSummon(newState, action.characterClass, action.name);
+			break;
 		case "deleteTrackedClass":
 			deleteTrackedClass(newState, action.id);
+			break;
+		case "deleteSummon":
+			deleteSummon(newState, action.characterId, action.summonId);
 			break;
 		case "setInitiative":
 			setInitiative(newState, action.id, action.value);
@@ -93,11 +101,44 @@ export function addCharacter(state: ITrackerState, name: string, characterClassI
 		id: state.nextId++,
 		name,
 		characterClass: characterClassId,
+		iconKey: getCharacterIcon(characterClassId),
 	};
 
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newCharacter.id, newCharacter);
 	state.orderedIds = [...state.orderedIds, newCharacter.id];
 	updateOnTrackedClassesChanged(state);
+}
+
+function addSummon(state: ITrackerState, characterClass: CharacterClass, name: string): void {
+	let character = getCharacterByClassId(state, characterClass);
+	if (character) {
+		const activeSummons = character.activeSummons ? [...character.activeSummons] : [];
+		activeSummons.push({
+			type: "summon",
+			id: state.nextId++,
+			characterId: character.id,
+			name,
+			iconKey: getCharacterIcon(characterClass),
+		});
+		const newCharacter = {
+			...character,
+			activeSummons,
+		};
+		const newTrackedClassesById = new Map(state.trackedClassesById).set(character.id, newCharacter);
+		state.trackedClassesById = newTrackedClassesById;
+	}
+}
+
+function deleteSummon(state: ITrackerState, characterId: number, summonId: number): void {
+	let character = state.trackedClassesById.get(characterId);
+	if (character && isCharacter(character)) {
+		const newCharacter = {
+			...character,
+			activeSummons: character.activeSummons?.filter(summon => summon.id !== summonId),
+		};
+		const newTrackedClassesById = new Map(state.trackedClassesById).set(character.id, newCharacter);
+		state.trackedClassesById = newTrackedClassesById;
+	}
 }
 
 function deleteTrackedClass(state: ITrackerState, idToDelete: number): void {
@@ -120,12 +161,36 @@ function setTurnComplete(state: ITrackerState, id: number, value: boolean): void
 	const trackedClass = state.trackedClassesById.get(id);
 	if (trackedClass) {
 		state.trackedClassesById = new Map(state.trackedClassesById).set(id, { ...trackedClass, turnComplete: value });
+	} else {
+		setSummonTurnComplete(state, id, value);
+	}
+}
+
+function setSummonTurnComplete(state: ITrackerState, id: number, value: boolean): void {
+	const character = Array.from(state.trackedClassesById.values())
+		.filter(isCharacter)
+		.find(c => c.activeSummons?.some(s => s.id === id));
+	if (character) {
+		const newCharacter = {
+			...character,
+			activeSummons: character.activeSummons?.map(s => {
+				if (s.id === id) {
+					s = { ...s, turnComplete: value };
+				}
+				return s;
+			}),
+		};
+		const newTrackedClassesById = new Map(state.trackedClassesById).set(character.id, newCharacter);
+		state.trackedClassesById = newTrackedClassesById;
 	}
 }
 
 function resetForNewRound(state: ITrackerState): void {
 	const newTrackedClassesById = new Map(state.trackedClassesById);
 	state.trackedClassesById.forEach((tc, id) => {
+		if (isCharacter(tc)) {
+			tc.activeSummons = tc.activeSummons?.map(s => ({ ...s, turnComplete: false }));
+		}
 		newTrackedClassesById.set(id, { ...tc, initiative: undefined, turnComplete: false });
 	});
 	state.trackedClassesById = newTrackedClassesById;
@@ -175,4 +240,10 @@ function updateTieProps(state: ITrackerState): void {
 
 function updateOnTrackedClassesChanged(state: ITrackerState): void {
 	updateTieProps(state);
+}
+
+function getCharacterByClassId(state: ITrackerState, classId: CharacterClass): ICharacter | undefined {
+	return Array.from(state.trackedClassesById.values())
+		.filter(isCharacter)
+		.find(character => character.characterClass === classId);
 }

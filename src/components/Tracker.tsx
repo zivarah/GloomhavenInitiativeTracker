@@ -41,8 +41,8 @@ export const Tracker: FC<ITrackerProps> = props => {
 
 	return (
 		<div className="trackerOuter">
-			<div className="menu">
-				<span className="fa fa-ellipsis-v" onClick={onMenuClick} />
+			<div className="menu" onClick={onMenuClick}>
+				<span className="fa fa-ellipsis-v" />
 			</div>
 			{state.orderedIds.length === 0 ? (
 				"No characters added"
