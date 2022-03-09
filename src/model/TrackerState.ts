@@ -1,3 +1,4 @@
+import { IAlly } from "./Ally";
 import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
 import { IMonster, MonsterClass, monsterClassInfos } from "./Monster";
 import { ITrackableClass } from "./TrackableClass";
@@ -43,6 +44,7 @@ export type TrackerAction =
 	| { action: "addMonster"; monsterClass: MonsterClass }
 	| { action: "addCharacter"; characterClass: CharacterClass; name: string }
 	| { action: "addSummon"; characterClass: CharacterClass; name: string }
+	| { action: "addAlly"; name: string }
 	| { action: "deleteTrackedClass"; id: number }
 	| { action: "deleteSummon"; characterId: number; summonId: number }
 	| { action: "setInitiative"; id: number; value: number | undefined }
@@ -62,6 +64,9 @@ export function updateTrackerState(prevState: ITrackerState, action: TrackerActi
 			break;
 		case "addSummon":
 			addSummon(newState, action.characterClass, action.name);
+			break;
+		case "addAlly":
+			addAlly(newState, action.name);
 			break;
 		case "deleteTrackedClass":
 			deleteTrackedClass(newState, action.id);
@@ -111,6 +116,18 @@ export function addCharacter(state: ITrackerState, name: string, characterClassI
 
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newCharacter.id, newCharacter);
 	state.orderedIds = [...state.orderedIds, newCharacter.id];
+	updateOnTrackedClassesChanged(state);
+}
+
+export function addAlly(state: ITrackerState, name: string): void {
+	const newAlly: IAlly = {
+		type: "ally",
+		id: state.nextId++,
+		name,
+	};
+
+	state.trackedClassesById = new Map(state.trackedClassesById).set(newAlly.id, newAlly);
+	state.orderedIds = [...state.orderedIds, newAlly.id];
 	updateOnTrackedClassesChanged(state);
 }
 
@@ -200,6 +217,7 @@ function resetForNewRound(state: ITrackerState): void {
 	});
 	state.trackedClassesById = newTrackedClassesById;
 	state.phase = RoundPhase.choosingInitiative;
+	state.tieExistsBetweenAny = false;
 }
 
 function beginRound(state: ITrackerState): void {

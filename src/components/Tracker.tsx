@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useCookies } from "react-cookie";
+import { isAlly } from "../model/Ally";
 import { isCharacter } from "../model/Character";
 import { isMonster } from "../model/Monster";
 import { createInitialState, ICookie, ITrackerState, TrackerAction, updateTrackerState } from "../model/TrackerState";
@@ -36,6 +37,7 @@ export const Tracker: FC<ITrackerProps> = props => {
 		return {
 			characters: new Set(allClasses.filter(isCharacter).map(c => c.characterClass)),
 			monsters: new Set(allClasses.filter(isMonster).map(c => c.monsterClass)),
+			allies: new Set(allClasses.filter(isAlly).map(a => a.name)),
 		};
 	}, [state.trackedClassesById]);
 

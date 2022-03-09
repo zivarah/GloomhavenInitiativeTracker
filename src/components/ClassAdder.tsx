@@ -6,8 +6,9 @@ import { TrackerDispatch } from "../model/TrackerState";
 import { getEnumValues } from "../utils/EnumUtils";
 
 export interface IExistingClasses {
-	characters: Set<CharacterClass>;
-	monsters: Set<MonsterClass>;
+	characters: ReadonlySet<CharacterClass>;
+	monsters: ReadonlySet<MonsterClass>;
+	allies: ReadonlySet<string>;
 }
 
 export interface IClassAdderProps {
@@ -34,7 +35,9 @@ export const ClassAdder: FC<IClassAdderProps> = props => {
 					<br />
 					<CharacterAdder existingCharacters={existingClasses.characters} dispatch={dispatch} />
 					<br />
-					<SummonAdder existingCharacterClasses={existingClasses.characters} dispatch={dispatch} />
+					<SummonAdder existingCharacters={existingClasses.characters} dispatch={dispatch} />
+					<br />
+					<AllyAdder existingAllies={existingClasses.allies} dispatch={dispatch} />
 				</div>
 			)}
 		</div>
@@ -143,11 +146,11 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 };
 
 interface ISummonAdderProps {
-	existingCharacterClasses: Set<CharacterClass>;
+	existingCharacters: ReadonlySet<CharacterClass>;
 	dispatch: TrackerDispatch;
 }
 const SummonAdder: FC<ISummonAdderProps> = props => {
-	const { existingCharacterClasses, dispatch } = props;
+	const { existingCharacters: existingCharacterClasses, dispatch } = props;
 	const [selectedClass, setSelectedClass] = useState<CharacterClass>();
 	const [selectedSummon, setSelectedSummon] = useState<string>();
 
@@ -183,7 +186,7 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 	}
 
 	return (
-		<>
+		<div>
 			Add a summon:
 			<br />
 			<select className="classAdderInput" value={selectedClass ?? "default"} onChange={onClassChange}>
@@ -205,6 +208,42 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 			<button disabled={!selectedClass || !selectedSummon} onClick={onAccept}>
 				<i className="fa fa-plus" />
 			</button>
-		</>
+		</div>
+	);
+};
+
+interface IAllyAdderProps {
+	existingAllies: ReadonlySet<string>;
+	dispatch: TrackerDispatch;
+}
+
+const AllyAdder: FC<IAllyAdderProps> = props => {
+	const { existingAllies, dispatch } = props;
+
+	const [name, setName] = useState("");
+
+	const onNameChange = useCallback(
+		(event: ChangeEvent<HTMLInputElement>) => {
+			setName(event.target.value);
+		},
+		[setName]
+	);
+
+	const onAccept = useCallback(() => {
+		if (name) {
+			dispatch({ action: "addAlly", name });
+			setName("");
+		}
+	}, [name, setName, dispatch]);
+
+	return (
+		<div>
+			Add an ally:
+			<br />
+			<input className="classAdderInput classAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
+			<button disabled={!name || existingAllies.has(name)} onClick={onAccept}>
+				<i className="fa fa-plus" />
+			</button>
+		</div>
 	);
 };
