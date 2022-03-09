@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/GloomhavenInitiativeTracker/static/css/main.18bb5e69.css",
-    "main.js": "/GloomhavenInitiativeTracker/static/js/main.d41e8ab1.js",
+    "main.css": "/GloomhavenInitiativeTracker/static/css/main.9d8bd33b.css",
+    "main.js": "/GloomhavenInitiativeTracker/static/js/main.f5e18c06.js",
     "static/js/787.3098e70e.chunk.js": "/GloomhavenInitiativeTracker/static/js/787.3098e70e.chunk.js",
     "index.html": "/GloomhavenInitiativeTracker/index.html",
-    "main.18bb5e69.css.map": "/GloomhavenInitiativeTracker/static/css/main.18bb5e69.css.map",
-    "main.d41e8ab1.js.map": "/GloomhavenInitiativeTracker/static/js/main.d41e8ab1.js.map",
+    "main.9d8bd33b.css.map": "/GloomhavenInitiativeTracker/static/css/main.9d8bd33b.css.map",
+    "main.f5e18c06.js.map": "/GloomhavenInitiativeTracker/static/js/main.f5e18c06.js.map",
     "787.3098e70e.chunk.js.map": "/GloomhavenInitiativeTracker/static/js/787.3098e70e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.18bb5e69.css",
-    "static/js/main.d41e8ab1.js"
+    "static/css/main.9d8bd33b.css",
+    "static/js/main.f5e18c06.js"
   ]
 }
