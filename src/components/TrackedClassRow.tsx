@@ -2,16 +2,17 @@ import React, { ChangeEvent, FC, KeyboardEventHandler, ReactElement, useCallback
 import { isCharacter } from "../model/Character";
 import { isSummon } from "../model/Summon";
 import { ITrackableClass } from "../model/TrackableClass";
-import { TrackerAction } from "../model/TrackerState";
+import { TrackerDispatch } from "../model/TrackerState";
 
 interface ITrackedClassRowProps {
 	trackedClass: ITrackableClass;
-	dispatch: React.Dispatch<TrackerAction>;
+	dispatch: TrackerDispatch;
 	showOptions: boolean;
+	tieExistsBetweenAny: boolean;
 }
 
 export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
-	const { trackedClass, showOptions, dispatch } = props;
+	const { trackedClass, showOptions, dispatch, tieExistsBetweenAny } = props;
 
 	const [editingInitiative, setEditingInitiative] = useState(false);
 
@@ -54,8 +55,6 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 
 	let initiativeContent: number | ReactElement | undefined;
 
-	const showTieBreakers = !isSummon(trackedClass);
-
 	const containerClassNames = ["charOuter"];
 	if (isSummon(trackedClass)) {
 		containerClassNames.push("summonOuter");
@@ -77,7 +76,13 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 	return (
 		<>
 			{activeSummons?.map(summon => (
-				<TrackedClassRow key={summon.id} dispatch={dispatch} trackedClass={summon} showOptions={showOptions} />
+				<TrackedClassRow
+					key={summon.id}
+					dispatch={dispatch}
+					trackedClass={summon}
+					showOptions={showOptions}
+					tieExistsBetweenAny={tieExistsBetweenAny}
+				/>
 			))}
 			<div className={containerClassNames.join(" ")}>
 				<input type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
@@ -86,8 +91,12 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 					{trackedClass.name}
 				</div>
 				<div className="charInit">{initiativeContent}</div>
-				<OptionIcon iconKey="arrow-down" visible={showTieBreakers && !!trackedClass.tiedWithNext} onClick={onMoveDown} />
-				<OptionIcon iconKey="arrow-up" visible={showTieBreakers && !!trackedClass.tiedWithPrevious} onClick={onMoveUp} />
+				{tieExistsBetweenAny && (
+					<>
+						<OptionIcon iconKey="arrow-down" visible={!!trackedClass.tiedWithNext} onClick={onMoveDown} />
+						<OptionIcon iconKey="arrow-up" visible={!!trackedClass.tiedWithPrevious} onClick={onMoveUp} />
+					</>
+				)}
 				<OptionIcon iconKey="times" visible={showOptions} className="delete" onClick={onDeleteWrapper} />
 			</div>
 		</>

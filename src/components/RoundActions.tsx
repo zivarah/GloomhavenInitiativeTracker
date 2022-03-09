@@ -1,8 +1,8 @@
 import React, { FC, useCallback } from "react";
-import { TrackerAction } from "../model/TrackerState";
+import { TrackerDispatch } from "../model/TrackerState";
 
 interface IRoundActionsProps {
-	dispatch: React.Dispatch<TrackerAction>;
+	dispatch: TrackerDispatch;
 }
 
 export const RoundActions: FC<IRoundActionsProps> = props => {

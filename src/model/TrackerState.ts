@@ -7,6 +7,7 @@ export interface ITrackerState {
 	orderedIds: readonly number[];
 	nextId: number;
 	phase: RoundPhase;
+	tieExistsBetweenAny: boolean;
 }
 
 export interface ICookie {
@@ -15,6 +16,7 @@ export interface ICookie {
 		orderedIds: readonly number[];
 		nextId: number;
 		phase: RoundPhase;
+		tieExistsBetweenAny: boolean;
 	};
 }
 
@@ -31,8 +33,11 @@ export function createInitialState(cookie?: ICookie): ITrackerState {
 		orderedIds: [],
 		nextId: 0,
 		phase: RoundPhase.choosingInitiative,
+		tieExistsBetweenAny: false,
 	};
 }
+
+export type TrackerDispatch = React.Dispatch<TrackerAction>;
 
 export type TrackerAction =
 	| { action: "addMonster"; monsterClass: MonsterClass }
@@ -217,6 +222,7 @@ function shift(state: ITrackerState, id: number, direction: "up" | "down"): void
 }
 
 function updateTieProps(state: ITrackerState): void {
+	state.tieExistsBetweenAny = false;
 	for (let i = 0; i < state.orderedIds.length; i++) {
 		const tc = state.trackedClassesById.get(state.orderedIds[i]);
 
@@ -231,6 +237,9 @@ function updateTieProps(state: ITrackerState): void {
 			tiedWithPrevious: prev && !!tc.initiative && tc.initiative === prev.initiative,
 			tiedWithNext: next && !!tc.initiative && tc.initiative === next.initiative,
 		};
+		if (newTc.tiedWithNext || newTc.tiedWithPrevious) {
+			state.tieExistsBetweenAny = true;
+		}
 
 		if (!!newTc.tiedWithPrevious !== !!tc.tiedWithPrevious || !!newTc.tiedWithNext !== !!tc.tiedWithNext) {
 			state.trackedClassesById = new Map(state.trackedClassesById).set(tc.id, newTc);

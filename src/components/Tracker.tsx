@@ -60,6 +60,7 @@ export const Tracker: FC<ITrackerProps> = props => {
 								trackedClass={trackedClass}
 								showOptions={showOptions}
 								dispatch={dispatch}
+								tieExistsBetweenAny={state.tieExistsBetweenAny}
 							/>
 						);
 					})}
