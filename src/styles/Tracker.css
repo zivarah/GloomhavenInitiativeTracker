@@ -3,7 +3,7 @@
 }
 
 .trackerOuter .trackerClasses {
-	font-size: x-large;
+	font-size: larger;
 }
 
 .charOuter {
@@ -52,7 +52,7 @@
 }
 
 .delete {
-	margin-left: 16px;
+	margin-left: 10px;
 }
 
 .initInput {
@@ -93,7 +93,5 @@
 
 .menu {
 	position: absolute;
-	top: 10px;
-	right: 5px;
-	padding: 4px 10px;
+	padding: 4px 12px;
 }

@@ -1,4 +1,5 @@
-import React, { FC, useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useWindowWidth } from "@react-hook/window-size";
+import React, { CSSProperties, FC, useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useCookies } from "react-cookie";
 import { isAlly } from "../model/Ally";
 import { isCharacter } from "../model/Character";
@@ -17,6 +18,9 @@ export const Tracker: FC<ITrackerProps> = props => {
 		cookie,
 		createInitialState
 	);
+
+	const windowWidth = useWindowWidth();
+	const menuStyle = useMemo<CSSProperties>(() => ({ left: windowWidth - 30, top: 5 }), [windowWidth]);
 
 	const [showOptions, setshowOptions] = useState(false);
 	const onMenuClick = useCallback(() => setshowOptions(!showOptions), [showOptions, setshowOptions]);
@@ -43,7 +47,7 @@ export const Tracker: FC<ITrackerProps> = props => {
 
 	return (
 		<div className="trackerOuter">
-			<div className="menu" onClick={onMenuClick}>
+			<div className="menu" onClick={onMenuClick} style={menuStyle}>
 				<span className="fa fa-ellipsis-v" />
 			</div>
 			{state.orderedIds.length === 0 ? (
