@@ -92,10 +92,10 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 				</div>
 				<div className="charInit">{initiativeContent}</div>
 				{tieExistsBetweenAny && (
-					<>
-						<OptionIcon iconKey="arrow-down" visible={!!trackedClass.tiedWithNext} onClick={onMoveDown} />
-						<OptionIcon iconKey="arrow-up" visible={!!trackedClass.tiedWithPrevious} onClick={onMoveUp} />
-					</>
+					<div className="moveContainer">
+						{trackedClass.tiedWithPrevious && <div className={"moveUp"} onClick={onMoveUp} />}
+						{trackedClass.tiedWithNext && <div className={"moveDown"} onClick={onMoveDown} />}
+					</div>
 				)}
 				<OptionIcon iconKey="times" visible={showOptions} className="delete" onClick={onDeleteWrapper} />
 			</div>

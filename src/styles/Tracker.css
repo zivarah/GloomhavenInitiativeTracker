@@ -3,7 +3,7 @@
 }
 
 .trackerOuter .trackerClasses {
-	font-size: larger;
+	font-size: x-large;
 }
 
 .charOuter {
@@ -45,9 +45,32 @@
 	width: 15px;
 	height: 15px;
 }
+.moveContainer {
+	display: inline-block;
+	position: relative;
+	width: 20px;
+}
+
+.moveUp,
+.moveDown {
+	position: absolute;
+	width: 0px;
+	height: 0px;
+	border-left: 9px solid transparent;
+	border-right: 9px solid transparent;
+	display: inline-block;
+}
+.moveUp {
+	top: -19px;
+	border-bottom: 9px solid black;
+}
+.moveDown {
+	top: -7px;
+	border-top: 9px solid black;
+}
 
 .optionIcon {
-	min-width: 24px;
+	min-width: 16px;
 	display: inline-block;
 }
 
