@@ -1,19 +1,21 @@
-import { CharacterClass, ICharacter, isCharacter } from "./Character";
-import { IMonster, isMonster, MonsterClass, monsterClassInfos } from "./Monster";
+import { CharacterClass, ICharacter } from "./Character";
+import { IMonster, MonsterClass, monsterClassInfos } from "./Monster";
 import { ITrackableClass } from "./TrackableClass";
 
+export interface ITrackerState {
+	trackedClassesById: ReadonlyMap<number, ITrackableClass>;
+	orderedIds: readonly number[];
+	nextId: number;
+	phase: RoundPhase;
+}
+
 export interface ICookie {
-	characters?: ICharacterForCookie[];
-	monsters?: IMonsterForCookie[];
-}
-
-interface ICharacterForCookie {
-	name: string;
-	characterClass: CharacterClass;
-}
-
-interface IMonsterForCookie {
-	monsterClass: MonsterClass;
+	state?: {
+		trackedClassesById: readonly (readonly [number, ITrackableClass])[];
+		orderedIds: readonly number[];
+		nextId: number;
+		phase: RoundPhase;
+	};
 }
 
 export enum RoundPhase {
@@ -21,28 +23,15 @@ export enum RoundPhase {
 	initiativesChosen,
 }
 export function createInitialState(cookie?: ICookie): ITrackerState {
-	const initialState = {
+	if (cookie?.state) {
+		return { ...cookie.state, trackedClassesById: new Map(cookie.state.trackedClassesById) };
+	}
+	return {
 		trackedClassesById: new Map<number, ITrackableClass>(),
 		orderedIds: [],
 		nextId: 0,
 		phase: RoundPhase.choosingInitiative,
-		cookie,
 	};
-	if (Array.isArray(cookie?.characters)) {
-		cookie?.characters?.forEach(c => addCharacter(initialState, c.name, c.characterClass));
-	}
-	if (Array.isArray(cookie?.monsters)) {
-		cookie?.monsters?.forEach(m => addMonster(initialState, m.monsterClass));
-	}
-	return initialState;
-}
-
-export interface ITrackerState {
-	trackedClassesById: ReadonlyMap<number, ITrackableClass>;
-	orderedIds: readonly number[];
-	nextId: number;
-	phase: RoundPhase;
-	cookie?: ICookie;
 }
 
 export type TrackerAction =
@@ -184,24 +173,6 @@ function updateTieProps(state: ITrackerState): void {
 	}
 }
 
-function updateCookie(state: ITrackerState): void {
-	const allClasses = Array.from(state.trackedClassesById.values());
-	const cookie: ICookie = {
-		characters: allClasses.filter(isCharacter).map(c => ({
-			name: c.name,
-			characterClass: c.characterClass,
-		})),
-		monsters: allClasses.filter(isMonster).map(m => ({
-			monsterClass: m.monsterClass,
-		})),
-	};
-	// Simple and fairly effective deep object comparison, but not perfect
-	if (JSON.stringify(cookie) !== JSON.stringify(state.cookie)) {
-		state.cookie = cookie;
-	}
-}
-
 function updateOnTrackedClassesChanged(state: ITrackerState): void {
 	updateTieProps(state);
-	updateCookie(state);
 }

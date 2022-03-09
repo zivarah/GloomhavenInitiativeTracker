@@ -10,10 +10,10 @@ import { TrackedClassRow } from "./TrackedClassRow";
 
 interface ITrackerProps {}
 export const Tracker: FC<ITrackerProps> = props => {
-	const [cookies, setCookie] = useCookies<keyof ICookie, ICookie>(["characters", "monsters"]);
+	const [cookie, setCookie] = useCookies<"state", ICookie>([]);
 	const [state, dispatch] = useReducer<React.Reducer<ITrackerState, TrackerAction>, ICookie>(
 		updateTrackerState,
-		cookies,
+		cookie,
 		createInitialState
 	);
 
@@ -21,13 +21,15 @@ export const Tracker: FC<ITrackerProps> = props => {
 	const onMenuClick = useCallback(() => setshowOptions(!showOptions), [showOptions, setshowOptions]);
 
 	useEffect(() => {
-		if (state.cookie?.characters) {
-			setCookie("characters", state.cookie?.characters);
+		const expireDate = new Date();
+		expireDate.setFullYear(expireDate.getFullYear() + 1);
+		const stateCookie: ICookie["state"] = { ...state, trackedClassesById: Array.from(state.trackedClassesById.entries()) };
+
+		// Simple and fairly effective deep object comparison, but not perfect.
+		if (JSON.stringify(stateCookie) !== JSON.stringify(cookie.state)) {
+			setCookie("state", stateCookie, { expires: expireDate });
 		}
-		if (state.cookie?.monsters) {
-			setCookie("monsters", state.cookie?.monsters);
-		}
-	}, [setCookie, state.cookie]);
+	}, [setCookie, state]);
 
 	const existingClasses = useMemo((): IExistingClasses => {
 		const allClasses = Array.from(state.trackedClassesById.values());
