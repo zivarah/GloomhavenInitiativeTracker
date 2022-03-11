@@ -1,11 +1,11 @@
 .trackerOuter {
 	margin: 20px;
-}
 
-.trackerOuter .trackedClassContainer {
-	display: grid;
-	grid-template-columns: [turn-complete] max-content [info] fit-content(300px) [initiative] max-content [move-buttons] max-content [delete] max-content;
-	place-items: center;
+	.trackedClassContainer {
+		display: grid;
+		grid-template-columns: [turn-complete] max-content [info] fit-content(300px) [initiative] max-content [move-buttons] max-content [delete] max-content;
+		place-items: center;
+	}
 }
 
 .menu {

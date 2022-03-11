@@ -1,19 +1,19 @@
 .classAdderOuter {
 	padding-top: 20px;
 	max-width: 305px;
-}
 
-.classAdderHeader {
-	display: inline-block;
-}
-.classAdderHeaderExpand {
-	float: right;
-}
+	.classAdderInput {
+		margin-right: 10px;
+	}
+	.classAdderNameField {
+		width: 100px;
+	}
 
-.classAdderOuter .classAdderInput {
-	margin-right: 10px;
-}
+	.classAdderHeader {
+		display: inline-block;
+	}
 
-.classAdderOuter .classAdderNameField {
-	width: 100px;
+	.classAdderHeaderExpand {
+		float: right;
+	}
 }

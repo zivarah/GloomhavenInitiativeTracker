@@ -37,8 +37,6 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 
 	const activeSummons = isCharacter(trackedClass) ? trackedClass.activeSummons : undefined;
 
-	const infoCssClass = isCharSummon ? "summonInfo" : "charInfo";
-
 	return (
 		<>
 			{activeSummons?.map(summon => (
@@ -51,8 +49,8 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 				/>
 			))}
 			<input className="charTurnComplete" type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
-			<div className={infoCssClass}>
-				<div className="charInfoContainer">
+			<div className="charInfo">
+				<div className={"charInfoContainer" + (isCharSummon ? " summonInfoContainer" : "")}>
 					<div className="charIcon">{trackedClass.iconKey && <img src={trackedClass.iconKey} alt="" />}</div>
 					<div className="charName">{trackedClass.name}</div>
 				</div>

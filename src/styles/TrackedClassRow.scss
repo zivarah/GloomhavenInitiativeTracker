@@ -6,36 +6,35 @@
 .charInfo,
 .summonInfo {
 	grid-column: info;
-}
 
-.charInfo .charInfoContainer {
-	display: table;
-	font-size: x-large;
-}
+	.charInfoContainer {
+		display: table;
+		font-size: x-large;
 
-.summonInfo .charInfoContainer {
-	display: table;
-	font-size: medium;
-}
+		&.summonInfoContainer {
+			font-size: medium;
+		}
 
-.charName {
-	display: table-cell;
-	text-align: center;
-	vertical-align: middle;
-}
+		.charName {
+			display: table-cell;
+			text-align: center;
+			vertical-align: middle;
+		}
 
-.charIcon {
-	display: table-cell;
-	text-align: center;
-	vertical-align: middle;
-	padding-right: 6px;
-	width: 18px;
-	height: 18px;
-}
+		.charIcon {
+			display: table-cell;
+			text-align: center;
+			vertical-align: middle;
+			padding-right: 6px;
+			width: 18px;
+			height: 18px;
 
-.charIcon img {
-	width: 18px;
-	height: 18px;
+			img {
+				width: 18px;
+				height: 18px;
+			}
+		}
+	}
 }
 
 .charSeparator {
@@ -52,34 +51,29 @@
 .charMoveButtons {
 	grid-column: move-buttons;
 	margin-left: 4px;
-}
 
-.charMoveButtonContainer {
-	position: relative;
-	width: 18px;
-}
+	.charMoveButtonContainer {
+		position: relative;
+		width: 18px;
 
-.summonOuter .charIcon {
-	width: 15px;
-	height: 15px;
-}
-
-.moveUp,
-.moveDown {
-	position: absolute;
-	width: 0px;
-	height: 0px;
-	border-left: 9px solid transparent;
-	border-right: 9px solid transparent;
-	display: inline-block;
-}
-.moveUp {
-	top: -11px;
-	border-bottom: 9px solid black;
-}
-.moveDown {
-	top: 2px;
-	border-top: 9px solid black;
+		.moveUp,
+		.moveDown {
+			position: absolute;
+			width: 0px;
+			height: 0px;
+			border-left: 9px solid transparent;
+			border-right: 9px solid transparent;
+			display: inline-block;
+		}
+		.moveUp {
+			top: -11px;
+			border-bottom: 9px solid black;
+		}
+		.moveDown {
+			top: 2px;
+			border-top: 9px solid black;
+		}
+	}
 }
 
 .charDelete {
