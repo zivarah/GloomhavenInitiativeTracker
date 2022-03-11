@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FC, useCallback, useRef, useState } from "react";
+import React, { ChangeEvent, FC, useCallback, useEffect, useRef, useState } from "react";
 import { ITrackableClass } from "../model/TrackableClass";
 import { TrackerDispatch } from "../model/TrackerState";
 import "../styles/InitiativeEditor.css";
@@ -13,25 +13,19 @@ export const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
 	const inputRef = useRef<HTMLInputElement | null>(null);
 	const [pendingInitiative, setPendingInitiative] = useState<number | undefined>(trackedClass.initiative);
 
-	const setInitiative = useCallback(
-		(value: number | undefined) => {
-			dispatch({ action: "setInitiative", id: trackedClass.id, value });
-		},
-		[trackedClass, dispatch]
-	);
+	useEffect(() => {
+		setPendingInitiative(trackedClass.initiative);
+	}, [trackedClass.initiative]);
 
-	const onChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
-			setPendingInitiative(validateInitiative(event.target.value));
-		},
-		[setPendingInitiative]
-	);
+	const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+		setPendingInitiative(validateInitiative(event.target.value));
+	}, []);
 
 	const onAccept = useCallback(() => {
 		if (pendingInitiative) {
-			setInitiative(pendingInitiative);
+			dispatch({ action: "setInitiative", id: trackedClass.id, value: pendingInitiative });
 		}
-	}, [pendingInitiative, setInitiative]);
+	}, [pendingInitiative, dispatch, trackedClass.id]);
 
 	const onFocus = useCallback(() => {
 		inputRef.current?.select();

@@ -44,15 +44,12 @@ const MonsterAdder: FC<IMonsterAdderProps> = props => {
 			dispatch({ action: "addMonster", monsterClass });
 			setMonsterClass(undefined);
 		}
-	}, [monsterClass, setMonsterClass, dispatch]);
+	}, [monsterClass, dispatch]);
 
-	const onMonsterClassIdChange = useCallback(
-		(event: ChangeEvent<HTMLSelectElement>) => {
-			const parsedInt = parseInt(event.target.value, 10);
-			setMonsterClass(parsedInt in MonsterClass ? parsedInt : undefined);
-		},
-		[setMonsterClass]
-	);
+	const onMonsterClassIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+		const parsedInt = parseInt(event.target.value, 10);
+		setMonsterClass(parsedInt in MonsterClass ? parsedInt : undefined);
+	}, []);
 
 	return (
 		<div>
@@ -86,12 +83,9 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 	const [name, setName] = useState("");
 	const [characterClass, setCharacterClass] = useState<CharacterClass>();
 
-	const onNameChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
-			setName(event.target.value);
-		},
-		[setName]
-	);
+	const onNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+		setName(event.target.value);
+	}, []);
 
 	const onCharacterAccept = useCallback(() => {
 		if (name && characterClass) {
@@ -99,15 +93,12 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 			setName("");
 			setCharacterClass(undefined);
 		}
-	}, [name, setName, characterClass, setCharacterClass, dispatch]);
+	}, [name, characterClass, dispatch]);
 
-	const onCharacterClassIdChange = useCallback(
-		(event: ChangeEvent<HTMLSelectElement>) => {
-			const parsedInt = parseInt(event.target.value, 10);
-			setCharacterClass(parsedInt in CharacterClass ? parsedInt : undefined);
-		},
-		[setCharacterClass]
-	);
+	const onCharacterClassIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+		const parsedInt = parseInt(event.target.value, 10);
+		setCharacterClass(parsedInt in CharacterClass ? parsedInt : undefined);
+	}, []);
 
 	return (
 		<div>
@@ -140,20 +131,14 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 	const [selectedClass, setSelectedClass] = useState<CharacterClass>();
 	const [selectedSummon, setSelectedSummon] = useState<string>();
 
-	const onClassChange = useCallback(
-		(event: ChangeEvent<HTMLSelectElement>) => {
-			const parsedInt = parseInt(event.target.value, 10);
-			setSelectedClass(parsedInt in CharacterClass ? parsedInt : undefined);
-		},
-		[setSelectedClass]
-	);
-	const onSummonChange = useCallback(
-		(event: ChangeEvent<HTMLSelectElement>) => {
-			const summon = event.target.value;
-			setSelectedSummon(summon === "default" ? undefined : summon);
-		},
-		[setSelectedSummon]
-	);
+	const onClassChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+		const parsedInt = parseInt(event.target.value, 10);
+		setSelectedClass(parsedInt in CharacterClass ? parsedInt : undefined);
+	}, []);
+	const onSummonChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+		const summon = event.target.value;
+		setSelectedSummon(summon === "default" ? undefined : summon);
+	}, []);
 
 	const onAccept = useCallback(() => {
 		if (selectedClass && selectedSummon) {
@@ -161,7 +146,7 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 			setSelectedClass(undefined);
 			setSelectedSummon(undefined);
 		}
-	}, [selectedClass, selectedSummon, setSelectedClass, setSelectedSummon, dispatch]);
+	}, [selectedClass, selectedSummon, dispatch]);
 
 	const summonableAllies: string[] = [];
 	if (selectedClass) {
@@ -211,19 +196,16 @@ const AllyAdder: FC<IAllyAdderProps> = props => {
 
 	const [name, setName] = useState("");
 
-	const onNameChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
-			setName(event.target.value);
-		},
-		[setName]
-	);
+	const onNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+		setName(event.target.value);
+	}, []);
 
 	const onAccept = useCallback(() => {
 		if (name) {
 			dispatch({ action: "addAlly", name });
 			setName("");
 		}
-	}, [name, setName, dispatch]);
+	}, [name, dispatch]);
 
 	return (
 		<div>

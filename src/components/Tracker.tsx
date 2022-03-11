@@ -20,7 +20,7 @@ export const Tracker: FC<ITrackerProps> = props => {
 	const [showOptions, setshowOptions] = useState(false);
 	const [figureAdderExpanded, classAddedExpanded] = useState(true);
 
-	const onMenuClick = useCallback(() => setshowOptions(!showOptions), [showOptions, setshowOptions]);
+	const onMenuClick = useCallback(() => setshowOptions(!showOptions), [showOptions]);
 
 	useEffect(() => {
 		const expireDate = new Date();
