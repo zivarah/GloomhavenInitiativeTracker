@@ -17,27 +17,14 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 	const { trackedClass, showOptions, dispatch, tieExistsBetweenAny } = props;
 	const isCharSummon = isSummon(trackedClass);
 
-	const setInitiativeWrapper = useCallback(
-		(value: number | undefined) => {
-			dispatch({ action: "setInitiative", id: trackedClass.id, value });
-		},
-		[trackedClass.id, dispatch]
-	);
-	const setTurnCompleteWrapper = useCallback(
-		(value: boolean) => {
-			dispatch({ action: "setTurnComplete", id: trackedClass.id, value });
-		},
-		[trackedClass.id, dispatch]
-	);
-
 	const onTurnCompleteChange = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
-			setTurnCompleteWrapper(event.target.checked);
+			dispatch({ action: "setTurnComplete", id: trackedClass.id, value: event.target.checked });
 		},
-		[setTurnCompleteWrapper]
+		[trackedClass, dispatch]
 	);
 
-	const onDeleteWrapper = useCallback(() => {
+	const onDelete = useCallback(() => {
 		if (isCharSummon) {
 			dispatch({ action: "deleteSummon", characterId: trackedClass.characterId, summonId: trackedClass.id });
 		} else {
@@ -74,7 +61,7 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 				</div>
 			</div>
 			<div className={["charInit"].join(" ")}>
-				{!isCharSummon && <InitiativeEditor initiative={trackedClass.initiative} setInitiative={setInitiativeWrapper} />}
+				{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}
 			</div>
 
 			<div className={["charMoveButtons"].join(" ")}>
@@ -86,9 +73,7 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 				)}
 			</div>
 
-			<div className={["charDelete"].join(" ")}>
-				{showOptions && <span className="fa fa-remove fa-sm" onClick={onDeleteWrapper} />}
-			</div>
+			<div className={["charDelete"].join(" ")}>{showOptions && <span className="fa fa-remove fa-sm" onClick={onDelete} />}</div>
 
 			{!isCharSummon && <div className="charSeparator" />}
 		</>

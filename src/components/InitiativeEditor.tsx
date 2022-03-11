@@ -1,15 +1,24 @@
 import React, { ChangeEvent, FC, useCallback, useRef, useState } from "react";
+import { ITrackableClass } from "../model/TrackableClass";
+import { TrackerDispatch } from "../model/TrackerState";
 import "../styles/InitiativeEditor.css";
 
 interface IInitiativeEditorProps {
-	initiative: number | undefined;
-	setInitiative(newInitiative: number): void;
+	trackedClass: ITrackableClass;
+	dispatch: TrackerDispatch;
 }
 
 export const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
-	const { initiative, setInitiative } = props;
+	const { trackedClass, dispatch } = props;
 	const inputRef = useRef<HTMLInputElement | null>(null);
-	const [pendingInitiative, setPendingInitiative] = useState<number | undefined>(initiative);
+	const [pendingInitiative, setPendingInitiative] = useState<number | undefined>(trackedClass.initiative);
+
+	const setInitiative = useCallback(
+		(value: number | undefined) => {
+			dispatch({ action: "setInitiative", id: trackedClass.id, value });
+		},
+		[trackedClass, dispatch]
+	);
 
 	const onChange = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
