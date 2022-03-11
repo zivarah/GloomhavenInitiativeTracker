@@ -52,10 +52,10 @@ export const Tracker: FC<ITrackerProps> = props => {
 	const onToggleExpand = useCallback(() => classAddedExpanded(!figureAdderExpanded), [figureAdderExpanded, classAddedExpanded]);
 
 	return (
-		<div className="trackerOuter">
-			<div className="activeFiguresContainer">
+		<div className="trackerContainer">
+			<div className="activeFiguresContainer trackerComponentContainer">
 				<div className="menu" onClick={onMenuClick}>
-					<span className="fa fa-ellipsis-v" />
+					<span className="fa fa-bars" />
 				</div>
 				<div className="title">Active Figures</div>
 				<hr />
@@ -93,7 +93,7 @@ export const Tracker: FC<ITrackerProps> = props => {
 				</div>
 			</div>
 
-			<div className="figureAdderContainer">
+			<div className="figureAdderContainer trackerComponentContainer">
 				<div onClick={onToggleExpand}>
 					<div className="title">Add Figures</div>
 					<div className={"collapseExpand fa " + (figureAdderExpanded ? "fa-angles-up" : "fa-angles-down")} />

@@ -67,16 +67,17 @@
 		}
 		.moveUp {
 			top: -11px;
-			border-bottom: 9px solid black;
+			border-bottom: 9px solid rgb(100, 100, 100);
 		}
 		.moveDown {
 			top: 2px;
-			border-top: 9px solid black;
+			border-top: 9px solid rgb(100, 100, 100);
 		}
 	}
 }
 
 .charDelete {
 	grid-column: delete;
-	margin-left: 16px;
+	margin-left: 8px;
+	color: rgb(100, 100, 100);
 }

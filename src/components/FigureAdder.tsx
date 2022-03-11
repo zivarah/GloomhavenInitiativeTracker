@@ -56,9 +56,9 @@ const MonsterAdder: FC<IMonsterAdderProps> = props => {
 
 	return (
 		<div>
-			Add a monster:
+			Monster
 			<br />
-			<select className="figureAdderInput" value={monsterClass ?? "default"} onChange={onMonsterClassIdChange}>
+			<select className="figureAdderInput figureAdderSelect" value={monsterClass ?? "default"} onChange={onMonsterClassIdChange}>
 				<option value="default">&lt;Class&gt;</option>
 				{getEnumValues(MonsterClass)
 					.filter(classId => !existingMonsters.has(classId))
@@ -111,9 +111,9 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 
 	return (
 		<div>
-			Add a character:
+			Character
 			<br />
-			<select className="figureAdderInput" value={characterClass ?? "default"} onChange={onCharacterClassIdChange}>
+			<select className="figureAdderInput figureAdderSelect" value={characterClass ?? "default"} onChange={onCharacterClassIdChange}>
 				<option value="default">&lt;Class&gt;</option>
 				{getEnumValues(CharacterClass)
 					.filter(classId => !existingCharacters.has(classId))
@@ -171,9 +171,9 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 
 	return (
 		<div>
-			Add a summon:
+			Summon
 			<br />
-			<select className="figureAdderInput" value={selectedClass ?? "default"} onChange={onClassChange}>
+			<select className="figureAdderInput figureAdderSelect" value={selectedClass ?? "default"} onChange={onClassChange}>
 				<option value="default">&lt;Character&gt;</option>
 				{Array.from(existingCharacterClasses).map(classId => (
 					<option value={classId} key={classId}>
@@ -181,7 +181,12 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 					</option>
 				))}
 			</select>
-			<select className="figureAdderInput" value={selectedSummon ?? "default"} onChange={onSummonChange} disabled={!selectedClass}>
+			<select
+				className="figureAdderInput figureAdderSelect"
+				value={selectedSummon ?? "default"}
+				onChange={onSummonChange}
+				disabled={!selectedClass}
+			>
 				<option value="default">&lt;Summon&gt;</option>
 				{summonableAllies.map(name => (
 					<option value={name} key={name}>
@@ -222,7 +227,7 @@ const AllyAdder: FC<IAllyAdderProps> = props => {
 
 	return (
 		<div>
-			Add an ally:
+			Ally
 			<br />
 			<input className="figureAdderInput figureAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
 			<button disabled={!name || existingAllies.has(name)} onClick={onAccept}>
