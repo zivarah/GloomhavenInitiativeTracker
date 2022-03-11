@@ -50,7 +50,7 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 		} else {
 			dispatch({ action: "deleteTrackedClass", id: trackedClass.id });
 		}
-	}, [trackedClass, dispatch]);
+	}, [trackedClass, dispatch, isCharSummon]);
 
 	const onMoveDown = useCallback(() => dispatch({ action: "shift", id: trackedClass.id, direction: "down" }), [trackedClass, dispatch]);
 	const onMoveUp = useCallback(() => dispatch({ action: "shift", id: trackedClass.id, direction: "up" }), [trackedClass, dispatch]);
@@ -92,11 +92,7 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 			/>
 			<div className={["charInfo", isCharSummon ? "summonInfo" : undefined].join(" ")}>
 				<div className="charInfoContainer">
-					{trackedClass.iconKey && (
-						<div className="charIcon">
-							<img src={trackedClass.iconKey} alt="" />
-						</div>
-					)}
+					<div className="charIcon">{trackedClass.iconKey && <img src={trackedClass.iconKey} alt="" />}</div>
 					<div className={["charName"].join(" ")}>{trackedClass.name}</div>
 				</div>
 			</div>

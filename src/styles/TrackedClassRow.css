@@ -1,5 +1,6 @@
 .charTurnComplete {
 	grid-column: turn-complete;
+	margin-right: 10px;
 }
 
 .charInfo {
@@ -21,16 +22,13 @@
 	vertical-align: middle;
 }
 
-.charInfo.summonInfo .charName {
-	/* Account for lack of icon */
-	padding-left: 24px;
-}
-
 .charIcon {
 	display: table-cell;
 	text-align: center;
 	vertical-align: middle;
 	padding-right: 6px;
+	width: 18px;
+	height: 18px;
 }
 
 .charIcon img {
@@ -39,26 +37,20 @@
 }
 
 .charSeparator {
-	/*
-	grid-column: info;
-	height: 1px;
-	width: 100px;
-	margin: 5px auto 3px auto;
-	border: none;
-	border-top: 1px solid rgb(225, 225, 225);
-	*/
 	grid-column: 1/-1;
 	height: 8px;
 }
 
 .charInit {
 	grid-column: initiative;
-	width: 22px;
+	min-width: 22px;
 	font-size: x-large;
+	margin-left: 20px;
 }
 
 .charMoveButtons {
 	grid-column: move-buttons;
+	margin-left: 4px;
 }
 
 .charMoveButtonContainer {
@@ -91,5 +83,5 @@
 
 .charDelete {
 	grid-column: delete;
-	font-size: unset;
+	margin-left: 16px;
 }

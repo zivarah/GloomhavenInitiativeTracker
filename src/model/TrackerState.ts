@@ -140,6 +140,7 @@ function addSummon(state: ITrackerState, characterClass: CharacterClass, name: s
 			id: state.nextId++,
 			characterId: character.id,
 			name,
+			turnComplete: state.phase === RoundPhase.initiativesChosen,
 		});
 		const newCharacter = {
 			...character,
