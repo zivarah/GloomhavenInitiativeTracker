@@ -37,6 +37,8 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 
 	const activeSummons = isCharacter(trackedClass) ? trackedClass.activeSummons : undefined;
 
+	const infoCssClass = isCharSummon ? "summonInfo" : "charInfo";
+
 	return (
 		<>
 			{activeSummons?.map(summon => (
@@ -48,23 +50,16 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 					tieExistsBetweenAny={tieExistsBetweenAny}
 				/>
 			))}
-			<input
-				className={["charTurnComplete"].join(" ")}
-				type="checkbox"
-				checked={!!trackedClass.turnComplete}
-				onChange={onTurnCompleteChange}
-			/>
-			<div className={["charInfo", isCharSummon ? "summonInfo" : undefined].join(" ")}>
+			<input className="charTurnComplete" type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
+			<div className={infoCssClass}>
 				<div className="charInfoContainer">
 					<div className="charIcon">{trackedClass.iconKey && <img src={trackedClass.iconKey} alt="" />}</div>
-					<div className={["charName"].join(" ")}>{trackedClass.name}</div>
+					<div className="charName">{trackedClass.name}</div>
 				</div>
 			</div>
-			<div className={["charInit"].join(" ")}>
-				{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}
-			</div>
+			<div className="charInit">{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}</div>
 
-			<div className={["charMoveButtons"].join(" ")}>
+			<div className="charMoveButtons">
 				{tieExistsBetweenAny && (
 					<div className="charMoveButtonContainer">
 						{trackedClass.tiedWithPrevious && <div className={"moveUp"} onClick={onMoveUp} />}
@@ -73,7 +68,7 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 				)}
 			</div>
 
-			<div className={["charDelete"].join(" ")}>{showOptions && <span className="fa fa-remove fa-sm" onClick={onDelete} />}</div>
+			<div className="charDelete">{showOptions && <span className="fa fa-remove fa-sm" onClick={onDelete} />}</div>
 
 			{!isCharSummon && <div className="charSeparator" />}
 		</>

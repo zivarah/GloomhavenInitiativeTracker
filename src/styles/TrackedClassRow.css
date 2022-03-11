@@ -3,16 +3,18 @@
 	margin-right: 10px;
 }
 
-.charInfo {
+.charInfo,
+.summonInfo {
 	grid-column: info;
 }
 
-.charInfoContainer {
+.charInfo .charInfoContainer {
 	display: table;
 	font-size: x-large;
 }
 
-.charInfo.summonInfo .charInfoContainer {
+.summonInfo .charInfoContainer {
+	display: table;
 	font-size: medium;
 }
 
