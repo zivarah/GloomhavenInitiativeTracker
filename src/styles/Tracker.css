@@ -3,7 +3,11 @@
 }
 
 .trackerOuter .trackedClassContainer {
-	font-size: x-large;
+	display: grid;
+	grid-template-columns: [turn-complete] max-content [info] fit-content(300px) [initiative] max-content [move-buttons] max-content [delete] max-content;
+	column-gap: 10px;
+	row-gap: 0px;
+	place-items: center;
 }
 
 .menu {

@@ -140,7 +140,6 @@ function addSummon(state: ITrackerState, characterClass: CharacterClass, name: s
 			id: state.nextId++,
 			characterId: character.id,
 			name,
-			iconKey: getCharacterIcon(characterClass),
 		});
 		const newCharacter = {
 			...character,

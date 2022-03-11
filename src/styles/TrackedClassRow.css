@@ -1,46 +1,74 @@
-.charOuter {
-	padding: 2px 0px;
-	min-height: 24px;
+.charTurnComplete {
+	grid-column: turn-complete;
 }
 
-.charInit {
-	padding: 0px 5px;
-	width: 30px;
-	display: inline-block;
-	text-align: right;
+.charInfo {
+	grid-column: info;
 }
 
-.charIcon {
-	width: 20px;
-	height: 20px;
-	vertical-align: middle;
-	padding-right: 10px;
-	padding-bottom: 3px;
+.charInfoContainer {
+	display: table;
+	font-size: x-large;
+}
+
+.charInfo.summonInfo .charInfoContainer {
+	font-size: medium;
 }
 
 .charName {
-	padding: 0px 5px;
+	display: table-cell;
 	text-align: center;
-	display: inline-block;
-	min-width: 200px;
+	vertical-align: middle;
 }
 
-.summonOuter {
-	min-height: 20px;
+.charInfo.summonInfo .charName {
+	/* Account for lack of icon */
+	padding-left: 24px;
 }
 
-.summonOuter .charName {
-	font-size: medium;
+.charIcon {
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	padding-right: 6px;
+}
+
+.charIcon img {
+	width: 18px;
+	height: 18px;
+}
+
+.charSeparator {
+	/*
+	grid-column: info;
+	height: 1px;
+	width: 100px;
+	margin: 5px auto 3px auto;
+	border: none;
+	border-top: 1px solid rgb(225, 225, 225);
+	*/
+	grid-column: 1/-1;
+	height: 8px;
+}
+
+.charInit {
+	grid-column: initiative;
+	width: 22px;
+	font-size: x-large;
+}
+
+.charMoveButtons {
+	grid-column: move-buttons;
+}
+
+.charMoveButtonContainer {
+	position: relative;
+	width: 18px;
 }
 
 .summonOuter .charIcon {
 	width: 15px;
 	height: 15px;
-}
-.moveContainer {
-	display: inline-block;
-	position: relative;
-	width: 20px;
 }
 
 .moveUp,
@@ -53,16 +81,15 @@
 	display: inline-block;
 }
 .moveUp {
-	top: -19px;
+	top: -11px;
 	border-bottom: 9px solid black;
 }
 .moveDown {
-	top: -7px;
+	top: 2px;
 	border-top: 9px solid black;
 }
 
-.delete {
-	margin-left: 10px;
-	min-width: 16px;
-	display: inline-block;
+.charDelete {
+	grid-column: delete;
+	font-size: unset;
 }
