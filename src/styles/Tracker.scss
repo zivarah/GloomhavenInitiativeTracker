@@ -4,6 +4,12 @@
 	grid-template-columns: max-content;
 	row-gap: 10px;
 
+	hr {
+		height: 1px;
+		border: 0px;
+		border-top: 1px solid lightgray;
+	}
+
 	.activeFiguresContainer {
 		position: relative;
 		padding: 10px;
