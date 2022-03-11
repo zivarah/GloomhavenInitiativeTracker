@@ -43,7 +43,6 @@
 
 .charInit {
 	grid-column: initiative;
-	min-width: 22px;
 	font-size: x-large;
 	margin-left: 20px;
 }

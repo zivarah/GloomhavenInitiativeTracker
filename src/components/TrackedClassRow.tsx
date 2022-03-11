@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FC, ReactElement, useCallback, useState } from "react";
+import React, { ChangeEvent, FC, useCallback } from "react";
 import { isCharacter } from "../model/Character";
 import { isSummon } from "../model/Summon";
 import { ITrackableClass } from "../model/TrackableClass";
@@ -15,27 +15,20 @@ interface ITrackedClassRowProps {
 
 export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 	const { trackedClass, showOptions, dispatch, tieExistsBetweenAny } = props;
-	const [editingInitiative, setEditingInitiative] = useState(false);
 	const isCharSummon = isSummon(trackedClass);
 
 	const setInitiativeWrapper = useCallback(
 		(value: number | undefined) => {
 			dispatch({ action: "setInitiative", id: trackedClass.id, value });
-			setEditingInitiative(false);
 		},
-		[trackedClass.id, setEditingInitiative, dispatch]
+		[trackedClass.id, dispatch]
 	);
 	const setTurnCompleteWrapper = useCallback(
 		(value: boolean) => {
 			dispatch({ action: "setTurnComplete", id: trackedClass.id, value });
-			setEditingInitiative(false);
 		},
-		[trackedClass.id, setEditingInitiative, dispatch]
+		[trackedClass.id, dispatch]
 	);
-
-	const onInitiativeClick = useCallback(() => {
-		setEditingInitiative(true);
-	}, [setEditingInitiative]);
 
 	const onTurnCompleteChange = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
@@ -54,22 +47,6 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 
 	const onMoveDown = useCallback(() => dispatch({ action: "shift", id: trackedClass.id, direction: "down" }), [trackedClass, dispatch]);
 	const onMoveUp = useCallback(() => dispatch({ action: "shift", id: trackedClass.id, direction: "up" }), [trackedClass, dispatch]);
-
-	let initiativeContent: number | ReactElement | undefined;
-
-	if (isCharSummon) {
-		initiativeContent = <div className="initiative" />;
-	} else if (!trackedClass.initiative || editingInitiative) {
-		initiativeContent = (
-			<InitiativeEditor initiative={trackedClass.initiative} setInitiative={setInitiativeWrapper} focus={editingInitiative} />
-		);
-	} else {
-		initiativeContent = (
-			<div className="initiative" onClick={onInitiativeClick}>
-				{trackedClass.initiative}
-			</div>
-		);
-	}
 
 	const activeSummons = isCharacter(trackedClass) ? trackedClass.activeSummons : undefined;
 
@@ -96,7 +73,9 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 					<div className={["charName"].join(" ")}>{trackedClass.name}</div>
 				</div>
 			</div>
-			<div className={["charInit"].join(" ")}>{initiativeContent}</div>
+			<div className={["charInit"].join(" ")}>
+				{!isCharSummon && <InitiativeEditor initiative={trackedClass.initiative} setInitiative={setInitiativeWrapper} />}
+			</div>
 
 			<div className={["charMoveButtons"].join(" ")}>
 				{tieExistsBetweenAny && (

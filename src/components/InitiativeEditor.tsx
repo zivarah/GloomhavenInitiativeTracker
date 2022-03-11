@@ -1,14 +1,13 @@
-import React, { ChangeEvent, FC, KeyboardEventHandler, useCallback, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, FC, useCallback, useRef, useState } from "react";
 import "../styles/InitiativeEditor.css";
 
 interface IInitiativeEditorProps {
 	initiative: number | undefined;
 	setInitiative(newInitiative: number): void;
-	focus: boolean;
 }
 
 export const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
-	const { initiative, setInitiative, focus } = props;
+	const { initiative, setInitiative } = props;
 	const inputRef = useRef<HTMLInputElement | null>(null);
 	const [pendingInitiative, setPendingInitiative] = useState<number | undefined>(initiative);
 
@@ -25,27 +24,9 @@ export const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
 		}
 	}, [pendingInitiative, setInitiative]);
 
-	const onKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
-		event => {
-			switch (event.key) {
-				case "Enter":
-					onAccept();
-					break;
-			}
-		},
-		[onAccept]
-	);
-
-	const onBlur = useCallback(() => {
-		onAccept();
-	}, [onAccept]);
-
-	useEffect(() => {
-		if (focus) {
-			inputRef.current?.focus();
-			inputRef.current?.select();
-		}
-	}, [focus]);
+	const onFocus = useCallback(() => {
+		inputRef.current?.select();
+	}, []);
 
 	return (
 		<input
@@ -58,8 +39,8 @@ export const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
 			max={99}
 			value={pendingInitiative ?? ""}
 			onChange={onChange}
-			onKeyDown={onKeyDown}
-			onBlur={onBlur}
+			onFocus={onFocus}
+			onBlur={onAccept}
 		/>
 	);
 };
