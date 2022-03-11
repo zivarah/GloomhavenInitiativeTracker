@@ -3,6 +3,7 @@ import { CharacterClass, characterClassInfos } from "../model/Character";
 import { MonsterClass, monsterClassInfos } from "../model/Monster";
 import { ItemSummonables } from "../model/Summon";
 import { TrackerDispatch } from "../model/TrackerState";
+import "../styles/ClassAdder.css";
 import { getEnumValues } from "../utils/EnumUtils";
 
 export interface IExistingClasses {
@@ -171,13 +172,11 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 
 	const onAccept = useCallback(() => {
 		if (selectedClass && selectedSummon) {
-			dispatch({ action: "addSummon", name: selectedSummon, characterClass: selectedClass }); //TODO
+			dispatch({ action: "addSummon", name: selectedSummon, characterClass: selectedClass });
 			setSelectedClass(undefined);
 			setSelectedSummon(undefined);
 		}
-	}, [selectedClass, selectedSummon, setSelectedClass, setSelectedSummon]);
-
-	//TODO: feed this the actual character names
+	}, [selectedClass, selectedSummon, setSelectedClass, setSelectedSummon, dispatch]);
 
 	const summonableAllies: string[] = [];
 	if (selectedClass) {

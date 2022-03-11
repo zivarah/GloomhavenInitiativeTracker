@@ -1,0 +1,68 @@
+.charOuter {
+	padding: 2px 0px;
+	min-height: 24px;
+}
+
+.charInit {
+	padding: 0px 5px;
+	width: 30px;
+	display: inline-block;
+	text-align: right;
+}
+
+.charIcon {
+	width: 20px;
+	height: 20px;
+	vertical-align: middle;
+	padding-right: 10px;
+	padding-bottom: 3px;
+}
+
+.charName {
+	padding: 0px 5px;
+	text-align: center;
+	display: inline-block;
+	min-width: 200px;
+}
+
+.summonOuter {
+	min-height: 20px;
+}
+
+.summonOuter .charName {
+	font-size: medium;
+}
+
+.summonOuter .charIcon {
+	width: 15px;
+	height: 15px;
+}
+.moveContainer {
+	display: inline-block;
+	position: relative;
+	width: 20px;
+}
+
+.moveUp,
+.moveDown {
+	position: absolute;
+	width: 0px;
+	height: 0px;
+	border-left: 9px solid transparent;
+	border-right: 9px solid transparent;
+	display: inline-block;
+}
+.moveUp {
+	top: -19px;
+	border-bottom: 9px solid black;
+}
+.moveDown {
+	top: -7px;
+	border-top: 9px solid black;
+}
+
+.delete {
+	margin-left: 10px;
+	min-width: 16px;
+	display: inline-block;
+}

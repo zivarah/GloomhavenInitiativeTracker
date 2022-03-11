@@ -34,7 +34,7 @@ export const Tracker: FC<ITrackerProps> = props => {
 		if (JSON.stringify(stateCookie) !== JSON.stringify(cookie.state)) {
 			setCookie("state", stateCookie, { expires: expireDate });
 		}
-	}, [setCookie, state]);
+	}, [setCookie, state, cookie.state]);
 
 	const existingClasses = useMemo((): IExistingClasses => {
 		const allClasses = Array.from(state.trackedClassesById.values());
@@ -53,7 +53,7 @@ export const Tracker: FC<ITrackerProps> = props => {
 			{state.orderedIds.length === 0 ? (
 				"No characters added"
 			) : (
-				<div className="trackerClasses">
+				<div className="trackedClassContainer">
 					{state.orderedIds.map(id => {
 						const trackedClass = state.trackedClassesById.get(id);
 						if (!trackedClass) {

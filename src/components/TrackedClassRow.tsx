@@ -1,8 +1,10 @@
-import React, { ChangeEvent, FC, KeyboardEventHandler, ReactElement, useCallback, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, FC, ReactElement, useCallback, useState } from "react";
 import { isCharacter } from "../model/Character";
 import { isSummon } from "../model/Summon";
 import { ITrackableClass } from "../model/TrackableClass";
 import { TrackerDispatch } from "../model/TrackerState";
+import "../styles/TrackedClassRow.css";
+import { InitiativeEditor } from "./InitiativeEditor";
 
 interface ITrackedClassRowProps {
 	trackedClass: ITrackableClass;
@@ -97,103 +99,8 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 						{trackedClass.tiedWithNext && <div className={"moveDown"} onClick={onMoveDown} />}
 					</div>
 				)}
-				<OptionIcon iconKey="times" visible={showOptions} className="delete" onClick={onDeleteWrapper} />
+				<div className="delete">{showOptions && <span className="fa fa-times" onClick={onDeleteWrapper} />}</div>
 			</div>
 		</>
 	);
-};
-
-interface IInitiativeEditorProps {
-	initiative: number | undefined;
-	setInitiative(newInitiative: number): void;
-	focus: boolean;
-}
-
-const InitiativeEditor: FC<IInitiativeEditorProps> = props => {
-	const { initiative, setInitiative, focus } = props;
-	const inputRef = useRef<HTMLInputElement | null>(null);
-	const [pendingInitiative, setPendingInitiative] = useState<number | undefined>(initiative);
-
-	const onChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
-			setPendingInitiative(validateInitiative(event.target.value));
-		},
-		[setPendingInitiative]
-	);
-
-	const onAccept = useCallback(() => {
-		if (pendingInitiative) {
-			setInitiative(pendingInitiative);
-		}
-	}, [pendingInitiative, setInitiative]);
-
-	const onKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
-		event => {
-			switch (event.key) {
-				case "Enter":
-					onAccept();
-					break;
-			}
-		},
-		[onAccept]
-	);
-
-	const onBlur = useCallback(() => {
-		onAccept();
-	}, [onAccept]);
-
-	useEffect(() => {
-		if (focus) {
-			inputRef.current?.focus();
-			inputRef.current?.select();
-		}
-	}, [focus]);
-
-	return (
-		<input
-			className="initInput"
-			ref={inputRef}
-			type="text"
-			inputMode="numeric"
-			pattern="[0-9]*"
-			min={1}
-			max={99}
-			value={pendingInitiative ?? ""}
-			onChange={onChange}
-			onKeyDown={onKeyDown}
-			onBlur={onBlur}
-		/>
-	);
-};
-function validateInitiative(valueStr: string | undefined): number | undefined {
-	if (!valueStr) return undefined;
-	const value = parseInt(valueStr);
-	if (isNaN(value)) {
-		return undefined;
-	}
-	if (value < 1) {
-		return 1;
-	}
-	if (value > 99) {
-		return 99;
-	}
-	if (!Number.isInteger(value)) {
-		return Math.round(value);
-	}
-	return value;
-}
-
-interface IOptionIconProps {
-	visible: boolean;
-	iconKey: string;
-	onClick: () => void;
-	className?: string;
-}
-const OptionIcon: FC<IOptionIconProps> = props => {
-	const { visible, iconKey, onClick, className } = props;
-	const classNames = ["optionIcon"];
-	if (className) {
-		classNames.push(className);
-	}
-	return <div className={classNames.join(" ")}>{visible && <span className={"fa fa-" + iconKey} onClick={onClick} />}</div>;
 };

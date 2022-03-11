@@ -1,5 +1,6 @@
 import React, { FC, useCallback } from "react";
 import { TrackerDispatch } from "../model/TrackerState";
+import "../styles/RoundActions.css";
 
 interface IRoundActionsProps {
 	dispatch: TrackerDispatch;
