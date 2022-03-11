@@ -1,14 +1,56 @@
 .trackerOuter {
-	margin: 20px;
+	margin: 10px;
+	display: grid;
+	grid-template-columns: max-content;
+	row-gap: 10px;
 
-	.trackedClassContainer {
-		display: grid;
-		grid-template-columns: [turn-complete] max-content [info] fit-content(300px) [initiative] max-content [move-buttons] max-content [delete] max-content;
-		place-items: center;
+	.activeFiguresContainer {
+		position: relative;
+		padding: 10px;
+
+		border: 1px solid black;
+
+		.title {
+			font-size: xx-large;
+			text-align: center;
+		}
+
+		.menu {
+			position: absolute;
+			top: 4px;
+			right: 4px;
+			padding: 4px 8px;
+		}
+
+		.trackedClassContainer {
+			display: grid;
+			grid-template-columns: [turn-complete] max-content [info] fit-content(300px) [initiative] max-content [move-buttons] max-content [delete] max-content;
+			place-items: center;
+		}
+		.roundActionsOuter {
+			display: grid;
+			column-gap: 10px;
+			grid-template-columns: auto auto;
+			justify-items: center;
+		}
 	}
-}
 
-.menu {
-	position: absolute;
-	padding: 4px 12px;
+	.figureAdderContainer {
+		position: relative;
+		padding: 10px;
+
+		border: 1px solid black;
+
+		.title {
+			font-size: large;
+			text-align: center;
+		}
+
+		.collapseExpand {
+			position: absolute;
+			top: 4px;
+			right: 4px;
+			padding: 4px 8px;
+		}
+	}
 }

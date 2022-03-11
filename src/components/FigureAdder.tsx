@@ -3,7 +3,7 @@ import { CharacterClass, characterClassInfos } from "../model/Character";
 import { MonsterClass, monsterClassInfos } from "../model/Monster";
 import { ItemSummonables } from "../model/Summon";
 import { TrackerDispatch } from "../model/TrackerState";
-import "../styles/ClassAdder.css";
+import "../styles/FigureAdder.css";
 import { getEnumValues } from "../utils/EnumUtils";
 
 export interface IExistingClasses {
@@ -12,35 +12,20 @@ export interface IExistingClasses {
 	allies: ReadonlySet<string>;
 }
 
-export interface IClassAdderProps {
-	existingClasses: IExistingClasses;
+export interface IfigureAdderProps {
+	existingFigures: IExistingClasses;
 	dispatch: TrackerDispatch;
 }
 
-export const ClassAdder: FC<IClassAdderProps> = props => {
-	const { existingClasses, dispatch } = props;
-	const [expanded, setExpanded] = useState(true);
-
-	const onToggleExpand = useCallback(() => setExpanded(!expanded), [expanded, setExpanded]);
+export const FigureAdder: FC<IfigureAdderProps> = props => {
+	const { existingFigures: existingClasses, dispatch } = props;
 
 	return (
-		<div className="classAdderOuter">
-			<div onClick={onToggleExpand}>
-				<div className="classAdderHeader">Add monsters and characters</div>
-				<div className={"classAdderHeaderExpand fa " + (expanded ? "fa-chevron-up" : "fa-chevron-down")} />
-			</div>
-			{expanded && (
-				<div>
-					<br />
-					<MonsterAdder existingMonsters={existingClasses.monsters} dispatch={dispatch} />
-					<br />
-					<CharacterAdder existingCharacters={existingClasses.characters} dispatch={dispatch} />
-					<br />
-					<SummonAdder existingCharacters={existingClasses.characters} dispatch={dispatch} />
-					<br />
-					<AllyAdder existingAllies={existingClasses.allies} dispatch={dispatch} />
-				</div>
-			)}
+		<div className="figureAdderOuter">
+			<MonsterAdder existingMonsters={existingClasses.monsters} dispatch={dispatch} />
+			<CharacterAdder existingCharacters={existingClasses.characters} dispatch={dispatch} />
+			<SummonAdder existingCharacters={existingClasses.characters} dispatch={dispatch} />
+			<AllyAdder existingAllies={existingClasses.allies} dispatch={dispatch} />
 		</div>
 	);
 };
@@ -73,7 +58,7 @@ const MonsterAdder: FC<IMonsterAdderProps> = props => {
 		<div>
 			Add a monster:
 			<br />
-			<select className="classAdderInput" value={monsterClass ?? "default"} onChange={onMonsterClassIdChange}>
+			<select className="figureAdderInput" value={monsterClass ?? "default"} onChange={onMonsterClassIdChange}>
 				<option value="default">&lt;Class&gt;</option>
 				{getEnumValues(MonsterClass)
 					.filter(classId => !existingMonsters.has(classId))
@@ -128,7 +113,7 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 		<div>
 			Add a character:
 			<br />
-			<select className="classAdderInput" value={characterClass ?? "default"} onChange={onCharacterClassIdChange}>
+			<select className="figureAdderInput" value={characterClass ?? "default"} onChange={onCharacterClassIdChange}>
 				<option value="default">&lt;Class&gt;</option>
 				{getEnumValues(CharacterClass)
 					.filter(classId => !existingCharacters.has(classId))
@@ -138,7 +123,7 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 						</option>
 					))}
 			</select>
-			<input className="classAdderInput classAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
+			<input className="figureAdderInput figureAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
 			<button disabled={!name || !characterClass} onClick={onCharacterAccept}>
 				<i className="fa fa-plus" />
 			</button>
@@ -188,7 +173,7 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 		<div>
 			Add a summon:
 			<br />
-			<select className="classAdderInput" value={selectedClass ?? "default"} onChange={onClassChange}>
+			<select className="figureAdderInput" value={selectedClass ?? "default"} onChange={onClassChange}>
 				<option value="default">&lt;Character&gt;</option>
 				{Array.from(existingCharacterClasses).map(classId => (
 					<option value={classId} key={classId}>
@@ -196,7 +181,7 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 					</option>
 				))}
 			</select>
-			<select className="classAdderInput" value={selectedSummon ?? "default"} onChange={onSummonChange} disabled={!selectedClass}>
+			<select className="figureAdderInput" value={selectedSummon ?? "default"} onChange={onSummonChange} disabled={!selectedClass}>
 				<option value="default">&lt;Summon&gt;</option>
 				{summonableAllies.map(name => (
 					<option value={name} key={name}>
@@ -239,7 +224,7 @@ const AllyAdder: FC<IAllyAdderProps> = props => {
 		<div>
 			Add an ally:
 			<br />
-			<input className="classAdderInput classAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
+			<input className="figureAdderInput figureAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
 			<button disabled={!name || existingAllies.has(name)} onClick={onAccept}>
 				<i className="fa fa-plus" />
 			</button>

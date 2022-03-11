@@ -1,0 +1,13 @@
+.figureAdderOuter {
+	display: grid;
+	grid-template-columns: max-content;
+	row-gap: 10px;
+
+	.figureAdderInput {
+		margin-right: 10px;
+	}
+
+	.figureAdderNameField {
+		width: 100px;
+	}
+}
