@@ -82,13 +82,13 @@ export const Tracker: FC<ITrackerProps> = props => {
 					</div>
 				)}
 				<div className="roundActionsOuter">
-					<button className="roundActionsButton" onClick={resetForNewRound}>
+					<button className="btn" onClick={resetForNewRound}>
 						<i className="fa fa-rotate" />
-						&nbsp;New Round
+						New Round
 					</button>
-					<button className="roundActionsButton" onClick={beginRound}>
+					<button className="btn" onClick={beginRound}>
 						<i className="fa fa-play" />
-						&nbsp;Begin Round
+						Begin Round
 					</button>
 				</div>
 			</div>

@@ -40,6 +40,14 @@
 			column-gap: 10px;
 			grid-template-columns: auto auto;
 			justify-items: center;
+
+			.btn .fa.fa-play {
+				color: green;
+			}
+
+			.btn .fa.fa-rotate {
+				color: steelblue;
+			}
 		}
 	}
 
