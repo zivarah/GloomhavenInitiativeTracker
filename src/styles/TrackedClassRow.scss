@@ -1,27 +1,27 @@
-.charTurnComplete {
+.classTurnComplete {
 	grid-column: turn-complete;
 	margin-right: 10px;
 }
 
-.charInfo,
-.summonInfo {
+.classInfo {
 	grid-column: info;
 
-	.charInfoContainer {
+	.classInfoContainer {
 		display: table;
-		font-size: x-large;
+		font-size: large;
 
 		&.summonInfoContainer {
-			font-size: medium;
+			font-size: small;
+			min-height: 20px;
 		}
 
-		.charName {
+		.className {
 			display: table-cell;
 			text-align: center;
 			vertical-align: middle;
 		}
 
-		.charIcon {
+		.classIcon {
 			display: table-cell;
 			text-align: center;
 			vertical-align: middle;
@@ -37,22 +37,22 @@
 	}
 }
 
-.charSeparator {
+.classSeparator {
 	grid-column: 1/-1;
 	height: 8px;
 }
 
-.charInit {
+.classInit {
 	grid-column: initiative;
 	font-size: x-large;
 	margin-left: 20px;
 }
 
-.charMoveButtons {
+.classMoveButtons {
 	grid-column: move-buttons;
 	margin-left: 4px;
 
-	.charMoveButtonContainer {
+	.classMoveButtonContainer {
 		position: relative;
 		width: 18px;
 
@@ -76,7 +76,7 @@
 	}
 }
 
-.charDelete {
+.classDelete {
 	grid-column: delete;
 	margin-left: 8px;
 	color: rgb(100, 100, 100);

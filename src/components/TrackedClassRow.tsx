@@ -48,27 +48,27 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 					tieExistsBetweenAny={tieExistsBetweenAny}
 				/>
 			))}
-			<input className="charTurnComplete" type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
-			<div className="charInfo">
-				<div className={"charInfoContainer" + (isCharSummon ? " summonInfoContainer" : "")}>
-					<div className="charIcon">{trackedClass.iconKey && <img src={trackedClass.iconKey} alt="" />}</div>
-					<div className="charName">{trackedClass.name}</div>
+			<input className="classTurnComplete" type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
+			<div className="classInfo">
+				<div className={"classInfoContainer" + (isCharSummon ? " summonInfoContainer" : "")}>
+					<div className="classIcon">{trackedClass.iconKey && <img src={trackedClass.iconKey} alt="" />}</div>
+					<div className="className">{trackedClass.name}</div>
 				</div>
 			</div>
-			<div className="charInit">{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}</div>
+			<div className="classInit">{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}</div>
 
-			<div className="charMoveButtons">
+			<div className="classMoveButtons">
 				{tieExistsBetweenAny && (
-					<div className="charMoveButtonContainer">
+					<div className="classMoveButtonContainer">
 						{trackedClass.tiedWithPrevious && <div className={"moveUp"} onClick={onMoveUp} />}
 						{trackedClass.tiedWithNext && <div className={"moveDown"} onClick={onMoveDown} />}
 					</div>
 				)}
 			</div>
 
-			<div className="charDelete">{showOptions && <span className="fa fa-remove fa-sm" onClick={onDelete} />}</div>
+			<div className="classDelete">{showOptions && <span className="fa fa-remove fa-sm" onClick={onDelete} />}</div>
 
-			{!isCharSummon && <div className="charSeparator" />}
+			{!isCharSummon && <div className="classSeparator" />}
 		</>
 	);
 };
