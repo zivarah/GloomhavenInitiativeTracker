@@ -222,7 +222,7 @@ function resetForNewRound(state: ITrackerState): void {
 
 function beginRound(state: ITrackerState): void {
 	state.orderedIds = [...Array.from(state.trackedClassesById.values())]
-		.sort((a, b) => (a.initiative ?? 0) - (b.initiative ?? 0))
+		.sort((a, b) => (a.initiative ?? 99) - (b.initiative ?? 99))
 		.map(tc => tc.id);
 	updateTieProps(state);
 	state.phase = RoundPhase.initiativesChosen;
