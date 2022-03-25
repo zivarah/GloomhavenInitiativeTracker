@@ -60,7 +60,10 @@ export const Tracker: FC<ITrackerProps> = props => {
 				<div className="title">Active Figures</div>
 				<hr />
 				{state.orderedIds.length === 0 ? (
-					"No characters added"
+					<>
+						<div className="noFiguresPlaceholder">No characters added</div>
+						<div className="separator" />
+					</>
 				) : (
 					<div className="trackedClassContainer">
 						{state.orderedIds.map(id => {

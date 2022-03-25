@@ -51,6 +51,15 @@
 		}
 	}
 
+	.noFiguresPlaceholder {
+		text-align: center;
+	}
+
+	.separator {
+		grid-column: 1/-1;
+		height: 8px;
+	}
+
 	.figureAdderContainer {
 		.title {
 			font-size: large;

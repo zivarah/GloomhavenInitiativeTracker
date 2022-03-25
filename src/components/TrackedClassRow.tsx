@@ -68,7 +68,7 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 
 			<div className="classDelete">{showOptions && <span className="fa fa-remove fa-sm" onClick={onDelete} />}</div>
 
-			{!isCharSummon && <div className="classSeparator" />}
+			{!isCharSummon && <div className="separator" />}
 		</>
 	);
 };
