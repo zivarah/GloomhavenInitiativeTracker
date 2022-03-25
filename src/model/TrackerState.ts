@@ -1,3 +1,4 @@
+import { getEnumValues } from "../utils/EnumUtils";
 import { IAlly } from "./Ally";
 import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
 import { IMonster, MonsterClass, monsterClassInfos } from "./Monster";
@@ -26,16 +27,52 @@ export enum RoundPhase {
 	initiativesChosen,
 }
 export function createInitialState(cookie?: ICookie): ITrackerState {
-	if (cookie?.state) {
+	if (cookieIsValid(cookie)) {
 		return { ...cookie.state, trackedClassesById: new Map(cookie.state.trackedClassesById) };
 	}
 	return {
 		trackedClassesById: new Map<number, ITrackableClass>(),
 		orderedIds: [],
-		nextId: 0,
+		nextId: 1,
 		phase: RoundPhase.choosingInitiative,
 		tieExistsBetweenAny: false,
 	};
+}
+
+function cookieIsValid(cookie?: ICookie): cookie is Required<ICookie> {
+	if (!cookie?.state) {
+		return false;
+	}
+	const { trackedClassesById, orderedIds, nextId, phase, tieExistsBetweenAny } = cookie.state;
+
+	if (
+		!Array.isArray(trackedClassesById) ||
+		trackedClassesById.length === 0 ||
+		!trackedClassesById.every(
+			idAndClass => Array.isArray(idAndClass) && typeof idAndClass[0] === "number" && trackableClassIsValid(idAndClass[1])
+		)
+	) {
+		return false;
+	}
+	if (!Array.isArray(orderedIds) || !orderedIds.every(id => typeof id === "number")) {
+		return false;
+	}
+	if (typeof nextId !== "number") {
+		return false;
+	}
+	if (!getEnumValues(RoundPhase).includes(phase)) {
+		return false;
+	}
+	if (typeof tieExistsBetweenAny !== "boolean") {
+		return false;
+	}
+	return true;
+}
+
+function trackableClassIsValid(tc: ITrackableClass): boolean {
+	// TODO: could/maybe should make sure all non-required props are also correct,
+	// and make sure extra character/monster/summon props are correct as well.
+	return typeof tc.id === "number" && typeof tc.name === "string" && typeof tc.type === "string";
 }
 
 export type TrackerDispatch = React.Dispatch<TrackerAction>;
