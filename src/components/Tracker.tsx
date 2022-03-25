@@ -50,16 +50,17 @@ export const Tracker: FC<ITrackerProps> = props => {
 	}, [dispatch]);
 
 	const onToggleExpand = useCallback(() => classAddedExpanded(!figureAdderExpanded), [figureAdderExpanded, classAddedExpanded]);
+	const noFigures = state.orderedIds.length === 0;
 
 	return (
 		<div className="trackerContainer">
 			<div className="activeFiguresContainer trackerComponentContainer">
-				<div className="menu" onClick={onMenuClick}>
-					<span className="fa fa-bars" />
+				<div className="menu" onClick={noFigures ? undefined : onMenuClick}>
+					<span className={`fa fa-bars ${noFigures ? "disabled" : ""}`} />
 				</div>
 				<div className="title">Active Figures</div>
 				<hr />
-				{state.orderedIds.length === 0 ? (
+				{noFigures ? (
 					<>
 						<div className="noFiguresPlaceholder">No characters added</div>
 						<div className="separator" />
