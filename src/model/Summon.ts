@@ -1,6 +1,7 @@
 import { ITrackableClass } from "./TrackableClass";
 
 export interface ISummon extends ITrackableClass<"summon"> {
+	/** The id of the character that summoned this summon */
 	characterId: number;
 }
 
