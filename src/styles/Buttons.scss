@@ -14,5 +14,10 @@
             min-height: unset;
         }
     }
+    
+    .fa.disabled {
+        opacity: 0.4;
+        color: black;
+    }
 }
 
