@@ -6,6 +6,7 @@ import { isMonster } from "../model/Monster";
 import { createInitialState, ICookie, ITrackerState, TrackerAction, updateTrackerState } from "../model/TrackerState";
 import "../styles/Tracker.css";
 import { FigureAdder, IExistingClasses } from "./FigureAdder";
+import { Section } from "./Section";
 import { TrackedClassRow } from "./TrackedClassRow";
 
 interface ITrackerProps {}
@@ -18,7 +19,6 @@ export const Tracker: FC<ITrackerProps> = props => {
 	);
 
 	const [showOptions, setshowOptions] = useState(false);
-	const [figureAdderExpanded, classAddedExpanded] = useState(true);
 
 	const onMenuClick = useCallback(() => setshowOptions(!showOptions), [showOptions]);
 
@@ -49,17 +49,13 @@ export const Tracker: FC<ITrackerProps> = props => {
 		dispatch({ action: "beginRound" });
 	}, [dispatch]);
 
-	const onToggleExpand = useCallback(() => classAddedExpanded(!figureAdderExpanded), [figureAdderExpanded, classAddedExpanded]);
 	const noFigures = state.orderedIds.length === 0;
+
+	const headerIcons = useMemo(() => [{ iconKey: "bars", disabled: noFigures, onClick: onMenuClick }], [noFigures, onMenuClick]);
 
 	return (
 		<div className="trackerContainer">
-			<div className="activeFiguresContainer trackerComponentContainer">
-				<div className="menu" onClick={noFigures ? undefined : onMenuClick}>
-					<span className={`fa fa-bars ${noFigures ? "disabled" : ""}`} />
-				</div>
-				<div className="title">Active Figures</div>
-				<hr />
+			<Section title="Active Figures" headerIcons={headerIcons}>
 				{noFigures ? (
 					<>
 						<div className="noFiguresPlaceholder">No characters added</div>
@@ -95,20 +91,11 @@ export const Tracker: FC<ITrackerProps> = props => {
 						Begin Round
 					</button>
 				</div>
-			</div>
+			</Section>
 
-			<div className="figureAdderContainer trackerComponentContainer">
-				<div onClick={onToggleExpand}>
-					<div className="title">Add Figures</div>
-					<div className={"collapseExpand fa " + (figureAdderExpanded ? "fa-angles-up" : "fa-angles-down")} />
-				</div>
-				{figureAdderExpanded && (
-					<>
-						<hr />
-						<FigureAdder existingFigures={existingFigures} dispatch={dispatch} />
-					</>
-				)}
-			</div>
+			<Section title="Add Figures" collapsible>
+				<FigureAdder existingFigures={existingFigures} dispatch={dispatch} />
+			</Section>
 		</div>
 	);
 };
