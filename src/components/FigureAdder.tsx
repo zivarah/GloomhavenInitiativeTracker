@@ -5,6 +5,7 @@ import { ItemSummonables } from "../model/Summon";
 import { TrackerDispatch } from "../model/TrackerState";
 import "../styles/FigureAdder.css";
 import { getEnumValues } from "../utils/EnumUtils";
+import { IconButton } from "./Buttons";
 
 export interface IExistingClasses {
 	characters: ReadonlySet<CharacterClass>;
@@ -39,7 +40,7 @@ const MonsterAdder: FC<IMonsterAdderProps> = props => {
 	const { existingMonsters, dispatch } = props;
 
 	const [monsterClass, setMonsterClass] = useState<MonsterClass>();
-	const onMonsterAccept = useCallback(() => {
+	const onAccept = useCallback(() => {
 		if (monsterClass) {
 			dispatch({ action: "addMonster", monsterClass });
 			setMonsterClass(undefined);
@@ -65,9 +66,7 @@ const MonsterAdder: FC<IMonsterAdderProps> = props => {
 						</option>
 					))}
 			</select>
-			<button disabled={!monsterClass} onClick={onMonsterAccept}>
-				<i className="fa fa-plus" />
-			</button>
+			<IconButton disabled={!monsterClass} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
 };
@@ -87,7 +86,7 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 		setName(event.target.value);
 	}, []);
 
-	const onCharacterAccept = useCallback(() => {
+	const onAccept = useCallback(() => {
 		if (name && characterClass) {
 			dispatch({ action: "addCharacter", name, characterClass });
 			setName("");
@@ -95,7 +94,7 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 		}
 	}, [name, characterClass, dispatch]);
 
-	const onCharacterClassIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+	const onCharacterClassChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
 		const parsedInt = parseInt(event.target.value, 10);
 		setCharacterClass(parsedInt in CharacterClass ? parsedInt : undefined);
 	}, []);
@@ -104,7 +103,7 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 		<div>
 			Character
 			<br />
-			<select className="figureAdderInput figureAdderSelect" value={characterClass ?? "default"} onChange={onCharacterClassIdChange}>
+			<select className="figureAdderInput figureAdderSelect" value={characterClass ?? "default"} onChange={onCharacterClassChange}>
 				<option value="default">&lt;Class&gt;</option>
 				{getEnumValues(CharacterClass)
 					.filter(classId => !existingCharacters.has(classId))
@@ -115,9 +114,7 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 					))}
 			</select>
 			<input className="figureAdderInput figureAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
-			<button disabled={!name || !characterClass} onClick={onCharacterAccept}>
-				<i className="fa fa-plus" />
-			</button>
+			<IconButton disabled={!name || !characterClass} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
 };
@@ -179,9 +176,7 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 					</option>
 				))}
 			</select>
-			<button disabled={!selectedClass || !selectedSummon} onClick={onAccept}>
-				<i className="fa fa-plus" />
-			</button>
+			<IconButton disabled={!selectedClass || !selectedSummon} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
 };
@@ -212,9 +207,7 @@ const AllyAdder: FC<IAllyAdderProps> = props => {
 			Ally
 			<br />
 			<input className="figureAdderInput figureAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
-			<button disabled={!name || existingAllies.has(name)} onClick={onAccept}>
-				<i className="fa fa-plus" />
-			</button>
+			<IconButton disabled={!name || existingAllies.has(name)} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
 };

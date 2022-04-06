@@ -5,48 +5,46 @@
 
 .classInfo {
 	grid-column: info;
+	display: table;
+	font-size: large;
 
-	.classInfoContainer {
-		display: table;
-		font-size: large;
+	&.summonInfo {
+		font-size: small;
+		min-height: 20px;
+	}
 
-		&.summonInfoContainer {
-			font-size: small;
-			min-height: 20px;
-		}
+	.className {
+		display: table-cell;
+		text-align: center;
+		vertical-align: middle;
+	}
 
-		.className {
-			display: table-cell;
-			text-align: center;
-			vertical-align: middle;
-		}
+	.classIcon {
+		display: table-cell;
+		text-align: center;
+		vertical-align: middle;
+		padding-right: 6px;
+		width: 18px;
+		height: 18px;
 
-		.classIcon {
-			display: table-cell;
-			text-align: center;
-			vertical-align: middle;
-			padding-right: 6px;
+		img {
 			width: 18px;
 			height: 18px;
-
-			img {
-				width: 18px;
-				height: 18px;
-			}
 		}
 	}
 }
 
 .classInit {
 	grid-column: initiative;
-	font-size: x-large;
-	margin-left: 20px;
+	margin-left: 10px;
 }
 
 .classMoveButtons {
 	grid-column: move-buttons;
 	margin-left: 4px;
 
+	$moveButtonSize: 9px;
+	
 	.classMoveButtonContainer {
 		position: relative;
 		width: 18px;
@@ -56,17 +54,17 @@
 			position: absolute;
 			width: 0px;
 			height: 0px;
-			border-left: 9px solid transparent;
-			border-right: 9px solid transparent;
+			border-left: $moveButtonSize solid transparent;
+			border-right: $moveButtonSize solid transparent;
 			display: inline-block;
 		}
 		.moveUp {
 			top: -11px;
-			border-bottom: 9px solid rgb(100, 100, 100);
+			border-bottom: $moveButtonSize solid black;
 		}
 		.moveDown {
 			top: 2px;
-			border-top: 9px solid rgb(100, 100, 100);
+			border-top: $moveButtonSize solid black;
 		}
 	}
 }
@@ -74,5 +72,5 @@
 .classDelete {
 	grid-column: delete;
 	margin-left: 8px;
-	color: rgb(100, 100, 100);
+	vertical-align: middle;
 }

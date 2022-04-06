@@ -1,0 +1,18 @@
+.btn {
+    min-height: 16px;
+    vertical-align: middle;
+    
+    &.captioned .fa {
+        margin-right: 6px;
+    }
+    
+    &.iconOnly {
+        &:not(.compact) {
+            font-size: large;
+        }
+        &.compact {
+            min-height: unset;
+        }
+    }
+}
+

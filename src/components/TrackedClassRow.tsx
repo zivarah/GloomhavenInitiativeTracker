@@ -2,8 +2,9 @@ import React, { ChangeEvent, FC, useCallback } from "react";
 import { isCharacter } from "../model/Character";
 import { isSummon } from "../model/Summon";
 import { ITrackableClass } from "../model/TrackableClass";
-import { TrackerDispatch } from "../model/TrackerState";
+import { RoundPhase, TrackerDispatch } from "../model/TrackerState";
 import "../styles/TrackedClassRow.css";
+import { IconButton } from "./Buttons";
 import { InitiativeEditor } from "./InitiativeEditor";
 
 interface ITrackedClassRowProps {
@@ -49,13 +50,17 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 				/>
 			))}
 			<input className="classTurnComplete" type="checkbox" checked={!!trackedClass.turnComplete} onChange={onTurnCompleteChange} />
-			<div className="classInfo">
-				<div className={"classInfoContainer" + (isCharSummon ? " summonInfoContainer" : "")}>
-					<div className="classIcon">{trackedClass.iconKey && <img src={trackedClass.iconKey} alt="" />}</div>
-					<div className="className">{trackedClass.name}</div>
-				</div>
+			<div className={"classInfo" + (isCharSummon ? " summonInfo" : "")}>
+				{trackedClass.iconKey && (
+					<div className="classIcon">
+						<img src={trackedClass.iconKey} alt="" />
+					</div>
+				)}
+				<div className="className">{trackedClass.name}</div>
 			</div>
-			<div className="classInit">{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}</div>
+			<div className="classInit">
+				{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}
+			</div>
 
 			<div className="classMoveButtons">
 				{tieExistsBetweenAny && (
@@ -66,7 +71,11 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 				)}
 			</div>
 
-			<div className="classDelete">{showOptions && <span className="fa fa-remove fa-sm" onClick={onDelete} />}</div>
+			{showOptions && (
+				<div className="classDelete">
+					<IconButton iconKey="remove" compact onClick={onDelete} />
+				</div>
+			)}
 
 			{!isCharSummon && <div className="separator" />}
 		</>

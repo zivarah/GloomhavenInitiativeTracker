@@ -1,33 +1,38 @@
 .trackerContainer {
 	display: grid;
-	grid-template-columns: max-content;
+	grid-template-columns: minmax(265px, max-content);
 	row-gap: 10px;
 	margin: 10px;
-	min-width: 300px;
 
 	.trackedClassContainer {
 		display: grid;
-		grid-template-columns: [turn-complete] max-content [info] fit-content(300px) [initiative] max-content [move-buttons] max-content [delete] max-content;
+		grid-template-columns: [turn-complete] max-content [info] 1fr [initiative] max-content [move-buttons] max-content [delete] max-content;
 		place-items: center;
 	}
 
 	.roundActionsOuter {
-		display: grid;
-		column-gap: 10px;
-		grid-template-columns: auto auto;
-		justify-items: center;
+		display: flex;
+		gap: 10px;
+		justify-content: center;
 
-		.btn .fa.fa-play {
+		.fa-play {
 			color: green;
 		}
 
-		.btn .fa.fa-rotate {
+		.fa-rotate {
 			color: steelblue;
 		}
 	}
 
 	.noFiguresPlaceholder {
 		text-align: center;
+		font-size: large;
+		font-weight: bold;
+		.fa-triangle-exclamation {
+			color: rgb(230, 226, 14);
+			padding-right: 6px;
+			-webkit-text-stroke: 1px black;
+		}
 	}
 
 	.separator {

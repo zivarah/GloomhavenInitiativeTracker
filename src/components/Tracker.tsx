@@ -5,6 +5,7 @@ import { isCharacter } from "../model/Character";
 import { isMonster } from "../model/Monster";
 import { createInitialState, ICookie, ITrackerState, TrackerAction, updateTrackerState } from "../model/TrackerState";
 import "../styles/Tracker.css";
+import { Button } from "./Buttons";
 import { FigureAdder, IExistingClasses } from "./FigureAdder";
 import { Section } from "./Section";
 import { TrackedClassRow } from "./TrackedClassRow";
@@ -50,46 +51,35 @@ export const Tracker: FC<ITrackerProps> = props => {
 	}, [dispatch]);
 
 	const noFigures = state.orderedIds.length === 0;
+	const noCharacters = !Array.from(state.trackedClassesById.values()).some(isCharacter);
 
 	const headerIcons = useMemo(() => [{ iconKey: "bars", disabled: noFigures, onClick: onMenuClick }], [noFigures, onMenuClick]);
 
 	return (
 		<div className="trackerContainer">
 			<Section title="Active Figures" headerIcons={headerIcons}>
-				{noFigures ? (
-					<>
-						<div className="noFiguresPlaceholder">No characters added</div>
-						<div className="separator" />
-					</>
-				) : (
-					<div className="trackedClassContainer">
-						{state.orderedIds.map(id => {
-							const trackedClass = state.trackedClassesById.get(id);
-							if (!trackedClass) {
-								throw new Error("Invalid character/monster state encountered");
-							}
+				{noCharacters && <NoCharacterWarning />}
+				<div className="trackedClassContainer">
+					{state.orderedIds.map(id => {
+						const trackedClass = state.trackedClassesById.get(id);
+						if (!trackedClass) {
+							throw new Error("Invalid character/monster state encountered");
+						}
 
-							return (
-								<TrackedClassRow
-									key={trackedClass.id}
-									trackedClass={trackedClass}
-									showOptions={showOptions}
-									dispatch={dispatch}
-									tieExistsBetweenAny={state.tieExistsBetweenAny}
-								/>
-							);
-						})}
-					</div>
-				)}
+						return (
+							<TrackedClassRow
+								key={trackedClass.id}
+								trackedClass={trackedClass}
+								showOptions={showOptions}
+								dispatch={dispatch}
+								tieExistsBetweenAny={state.tieExistsBetweenAny}
+							/>
+						);
+					})}
+				</div>
 				<div className="roundActionsOuter">
-					<button className="btn" onClick={resetForNewRound}>
-						<i className="fa fa-rotate" />
-						New Round
-					</button>
-					<button className="btn" onClick={beginRound}>
-						<i className="fa fa-play" />
-						Begin Round
-					</button>
+					<Button caption="New Round" iconKey="rotate" onClick={resetForNewRound} disabled={noCharacters} />
+					<Button caption="Begin Round" iconKey="play" onClick={beginRound} disabled={noCharacters} />
 				</div>
 			</Section>
 
@@ -97,5 +87,17 @@ export const Tracker: FC<ITrackerProps> = props => {
 				<FigureAdder existingFigures={existingFigures} dispatch={dispatch} />
 			</Section>
 		</div>
+	);
+};
+
+const NoCharacterWarning: FC = () => {
+	return (
+		<>
+			<div className="noFiguresPlaceholder">
+				<span className="fa-solid fa-triangle-exclamation" />
+				<span>No characters added</span>
+			</div>
+			<div className="separator" />
+		</>
 	);
 };

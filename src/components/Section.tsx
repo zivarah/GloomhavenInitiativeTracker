@@ -1,5 +1,10 @@
 import React, { FC, useCallback, useState } from "react";
 import "../styles/Section.css";
+import { IconButton, IIconButtonProps } from "./Buttons";
+
+interface IHeaderIconProps extends IIconButtonProps {
+	hidden?: boolean;
+}
 
 interface ISectionProps {
 	title: string;
@@ -22,7 +27,15 @@ export const Section: FC<ISectionProps> = props => {
 		<div className="sec">
 			<div>
 				<div className="title">{title}</div>
-				{allIcons.length > 0 && <div className="headerRightContainer">{allIcons.map(HeaderIcon)}</div>}
+				{allIcons.length > 0 && (
+					<div className="headerRightContainer">
+						{allIcons
+							.filter(i => !i.hidden)
+							.map(({ iconKey, disabled, onClick }) => (
+								<IconButton iconKey={iconKey} disabled={disabled} onClick={onClick} />
+							))}
+					</div>
+				)}
 			</div>
 			{expanded && (
 				<>
@@ -30,28 +43,6 @@ export const Section: FC<ISectionProps> = props => {
 					{children}
 				</>
 			)}
-		</div>
-	);
-};
-
-interface IHeaderIconProps {
-	iconKey: string;
-	hidden?: boolean;
-	disabled?: boolean;
-	onClick?: () => void;
-}
-const HeaderIcon: FC<IHeaderIconProps> = props => {
-	const { iconKey, hidden, disabled, onClick } = props;
-	if (hidden) {
-		return null;
-	}
-	const classNames = ["fa", "fa-" + iconKey];
-	if (disabled) {
-		classNames.push("disabled");
-	}
-	return (
-		<div onClick={disabled ? undefined : onClick}>
-			<span className={classNames.join(" ")} />
 		</div>
 	);
 };
