@@ -258,6 +258,11 @@ function resetForNewRound(state: ITrackerState): void {
 }
 
 function beginRound(state: ITrackerState): void {
+	const newTrackedClassesById = new Map(state.trackedClassesById);
+	state.trackedClassesById.forEach((tc, id) => {
+		newTrackedClassesById.set(id, { ...tc, initiative: tc.initiative ?? 99 });
+	});
+	state.trackedClassesById = newTrackedClassesById;
 	state.orderedIds = [...Array.from(state.trackedClassesById.values())]
 		.sort((a, b) => (a.initiative ?? 99) - (b.initiative ?? 99))
 		.map(tc => tc.id);
