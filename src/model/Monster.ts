@@ -48,7 +48,7 @@ export enum MonsterClass {
 }
 export interface IMonsterClassInfo extends ITrackableClassInfo {}
 
-export const monsterClassInfos: { [classId in MonsterClass]: IMonsterClassInfo } = {
+const monsterClassInfos: { [classId in MonsterClass]: IMonsterClassInfo } = {
 	[MonsterClass.ancientArtillery]: {
 		name: "Ancient Artillery",
 		//iconKey: "monsters/ancientArtillery.png",
@@ -194,3 +194,7 @@ export const monsterClassInfos: { [classId in MonsterClass]: IMonsterClassInfo }
 		//iconKey: "monsters/windDemon.png",
 	},
 };
+
+export function getMonsterName(classId: MonsterClass): string {
+	return monsterClassInfos[classId].name;
+}

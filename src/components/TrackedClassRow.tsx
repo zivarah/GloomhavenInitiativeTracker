@@ -2,7 +2,7 @@ import React, { ChangeEvent, FC, useCallback } from "react";
 import { isCharacter } from "../model/Character";
 import { isSummon } from "../model/Summon";
 import { ITrackableClass } from "../model/TrackableClass";
-import { RoundPhase, TrackerDispatch } from "../model/TrackerState";
+import { TrackerDispatch } from "../model/TrackerState";
 import "../styles/TrackedClassRow.css";
 import { IconButton } from "./Buttons";
 import { InitiativeEditor } from "./InitiativeEditor";
@@ -58,9 +58,7 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 				)}
 				<div className="className">{trackedClass.name}</div>
 			</div>
-			<div className="classInit">
-				{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}
-			</div>
+			<div className="classInit">{!isCharSummon && <InitiativeEditor trackedClass={trackedClass} dispatch={dispatch} />}</div>
 
 			<div className="classMoveButtons">
 				{tieExistsBetweenAny && (

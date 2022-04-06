@@ -1,7 +1,7 @@
 import { getEnumValues } from "../utils/EnumUtils";
 import { IAlly } from "./Ally";
 import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
-import { IMonster, MonsterClass, monsterClassInfos } from "./Monster";
+import { getMonsterName, IMonster, MonsterClass } from "./Monster";
 import { ITrackableClass } from "./TrackableClass";
 
 export interface ITrackerState {
@@ -134,7 +134,7 @@ export function addMonster(state: ITrackerState, monsterClassId: MonsterClass): 
 	const newMonster: IMonster = {
 		type: "monster",
 		id: state.nextId++,
-		name: monsterClassInfos[monsterClassId].name,
+		name: getMonsterName(monsterClassId),
 		monsterClass: monsterClassId,
 	};
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newMonster.id, newMonster);

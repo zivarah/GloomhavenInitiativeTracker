@@ -1,10 +1,10 @@
-import { ChangeEvent, FC, useCallback, useState } from "react";
-import { CharacterClass, characterClassInfos } from "../model/Character";
-import { MonsterClass, monsterClassInfos } from "../model/Monster";
+import { ChangeEvent, FC, useCallback, useMemo, useState } from "react";
+import { CharacterClass, getCharacterClassName, getCharacterSummonables } from "../model/Character";
+import { getMonsterName, MonsterClass } from "../model/Monster";
 import { ItemSummonables } from "../model/Summon";
 import { TrackerDispatch } from "../model/TrackerState";
 import "../styles/FigureAdder.css";
-import { getEnumValues } from "../utils/EnumUtils";
+import { getEnumValues, parseNumericEnum } from "../utils/EnumUtils";
 import { IconButton } from "./Buttons";
 
 export interface IExistingClasses {
@@ -13,20 +13,20 @@ export interface IExistingClasses {
 	allies: ReadonlySet<string>;
 }
 
-export interface IfigureAdderProps {
+export interface IFigureAdderProps {
 	existingFigures: IExistingClasses;
 	dispatch: TrackerDispatch;
 }
 
-export const FigureAdder: FC<IfigureAdderProps> = props => {
-	const { existingFigures: existingClasses, dispatch } = props;
+export const FigureAdder: FC<IFigureAdderProps> = props => {
+	const { existingFigures, dispatch } = props;
 
 	return (
 		<div className="figureAdderOuter">
-			<MonsterAdder existingMonsters={existingClasses.monsters} dispatch={dispatch} />
-			<CharacterAdder existingCharacters={existingClasses.characters} dispatch={dispatch} />
-			<SummonAdder existingCharacters={existingClasses.characters} dispatch={dispatch} />
-			<AllyAdder existingAllies={existingClasses.allies} dispatch={dispatch} />
+			<MonsterAdder existingMonsters={existingFigures.monsters} dispatch={dispatch} />
+			<CharacterAdder existingCharacters={existingFigures.characters} dispatch={dispatch} />
+			<SummonAdder existingCharacters={existingFigures.characters} dispatch={dispatch} />
+			<AllyAdder existingAllies={existingFigures.allies} dispatch={dispatch} />
 		</div>
 	);
 };
@@ -47,25 +47,23 @@ const MonsterAdder: FC<IMonsterAdderProps> = props => {
 		}
 	}, [monsterClass, dispatch]);
 
-	const onMonsterClassIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-		const parsedInt = parseInt(event.target.value, 10);
-		setMonsterClass(parsedInt in MonsterClass ? parsedInt : undefined);
+	const onMonsterClassIdChange = useCallback((value: string | undefined) => {
+		setMonsterClass(parseNumericEnum(MonsterClass, value));
 	}, []);
+
+	const monsterOptions = useMemo(
+		(): IOption[] =>
+			getEnumValues(MonsterClass)
+				.filter(classId => !existingMonsters.has(classId))
+				.map(classId => ({ value: classId, displayName: getMonsterName(classId) })),
+		[existingMonsters]
+	);
 
 	return (
 		<div>
 			Monster
 			<br />
-			<select className="figureAdderInput figureAdderSelect" value={monsterClass ?? "default"} onChange={onMonsterClassIdChange}>
-				<option value="default">&lt;Class&gt;</option>
-				{getEnumValues(MonsterClass)
-					.filter(classId => !existingMonsters.has(classId))
-					.map(classId => (
-						<option value={classId} key={classId}>
-							{monsterClassInfos[classId].name}
-						</option>
-					))}
-			</select>
+			<AdderSelect displayName="Type" value={monsterClass} onChange={onMonsterClassIdChange} options={monsterOptions} />
 			<IconButton disabled={!monsterClass} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
@@ -82,10 +80,6 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 	const [name, setName] = useState("");
 	const [characterClass, setCharacterClass] = useState<CharacterClass>();
 
-	const onNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-		setName(event.target.value);
-	}, []);
-
 	const onAccept = useCallback(() => {
 		if (name && characterClass) {
 			dispatch({ action: "addCharacter", name, characterClass });
@@ -94,26 +88,24 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 		}
 	}, [name, characterClass, dispatch]);
 
-	const onCharacterClassChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-		const parsedInt = parseInt(event.target.value, 10);
-		setCharacterClass(parsedInt in CharacterClass ? parsedInt : undefined);
+	const onCharacterClassChange = useCallback((value: string | undefined) => {
+		setCharacterClass(parseNumericEnum(CharacterClass, value));
 	}, []);
+
+	const classOptions = useMemo(
+		(): IOption[] =>
+			getEnumValues(CharacterClass)
+				.filter(classId => !existingCharacters.has(classId))
+				.map(classId => ({ value: classId, displayName: getCharacterClassName(classId) })),
+		[existingCharacters]
+	);
 
 	return (
 		<div>
 			Character
 			<br />
-			<select className="figureAdderInput figureAdderSelect" value={characterClass ?? "default"} onChange={onCharacterClassChange}>
-				<option value="default">&lt;Class&gt;</option>
-				{getEnumValues(CharacterClass)
-					.filter(classId => !existingCharacters.has(classId))
-					.map(classId => (
-						<option value={classId} key={classId}>
-							{characterClassInfos[classId].name}
-						</option>
-					))}
-			</select>
-			<input className="figureAdderInput figureAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
+			<AdderSelect displayName="Class" options={classOptions} value={characterClass} onChange={onCharacterClassChange} />
+			<AdderName value={name} onChange={setName} />
 			<IconButton disabled={!name || !characterClass} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
@@ -124,59 +116,38 @@ interface ISummonAdderProps {
 	dispatch: TrackerDispatch;
 }
 const SummonAdder: FC<ISummonAdderProps> = props => {
-	const { existingCharacters: existingCharacterClasses, dispatch } = props;
-	const [selectedClass, setSelectedClass] = useState<CharacterClass>();
-	const [selectedSummon, setSelectedSummon] = useState<string>();
+	const { existingCharacters, dispatch } = props;
+	const [characterClass, setCharacterClass] = useState<CharacterClass>();
+	const [name, setName] = useState<string>();
 
-	const onClassChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-		const parsedInt = parseInt(event.target.value, 10);
-		setSelectedClass(parsedInt in CharacterClass ? parsedInt : undefined);
-	}, []);
-	const onSummonChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-		const summon = event.target.value;
-		setSelectedSummon(summon === "default" ? undefined : summon);
+	const onClassChange = useCallback((value: string | undefined) => {
+		setCharacterClass(parseNumericEnum(CharacterClass, value));
 	}, []);
 
 	const onAccept = useCallback(() => {
-		if (selectedClass && selectedSummon) {
-			dispatch({ action: "addSummon", name: selectedSummon, characterClass: selectedClass });
-			setSelectedClass(undefined);
-			setSelectedSummon(undefined);
+		if (characterClass && name) {
+			dispatch({ action: "addSummon", name, characterClass });
+			setCharacterClass(undefined);
+			setName(undefined);
 		}
-	}, [selectedClass, selectedSummon, dispatch]);
+	}, [characterClass, name, dispatch]);
 
-	const summonableAllies: string[] = [];
-	if (selectedClass) {
-		summonableAllies.push(...(characterClassInfos[selectedClass].summonableAllies || []));
-		summonableAllies.push(...ItemSummonables);
-	}
+	const characterOptions = useMemo(
+		(): IOption[] => Array.from(existingCharacters).map(classId => ({ value: classId, displayName: getCharacterClassName(classId) })),
+		[existingCharacters]
+	);
+	const summonOptions = useMemo((): IOption[] => {
+		const charSummonables = characterClass ? getCharacterSummonables(characterClass) : [];
+		return [...charSummonables, ...ItemSummonables].map(value => ({ value }));
+	}, [characterClass]);
 
 	return (
 		<div>
 			Summon
 			<br />
-			<select className="figureAdderInput figureAdderSelect" value={selectedClass ?? "default"} onChange={onClassChange}>
-				<option value="default">&lt;Character&gt;</option>
-				{Array.from(existingCharacterClasses).map(classId => (
-					<option value={classId} key={classId}>
-						{characterClassInfos[classId].name}
-					</option>
-				))}
-			</select>
-			<select
-				className="figureAdderInput figureAdderSelect"
-				value={selectedSummon ?? "default"}
-				onChange={onSummonChange}
-				disabled={!selectedClass}
-			>
-				<option value="default">&lt;Summon&gt;</option>
-				{summonableAllies.map(name => (
-					<option value={name} key={name}>
-						{name}
-					</option>
-				))}
-			</select>
-			<IconButton disabled={!selectedClass || !selectedSummon} onClick={onAccept} iconKey="plus" />
+			<AdderSelect displayName="Character" value={characterClass} options={characterOptions} onChange={onClassChange} />
+			<AdderSelect displayName="Summon" value={name} options={summonOptions} onChange={setName} disabled={!characterClass} />
+			<IconButton disabled={!characterClass || !name} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
 };
@@ -191,10 +162,6 @@ const AllyAdder: FC<IAllyAdderProps> = props => {
 
 	const [name, setName] = useState("");
 
-	const onNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-		setName(event.target.value);
-	}, []);
-
 	const onAccept = useCallback(() => {
 		if (name) {
 			dispatch({ action: "addAlly", name });
@@ -206,8 +173,51 @@ const AllyAdder: FC<IAllyAdderProps> = props => {
 		<div>
 			Ally
 			<br />
-			<input className="figureAdderInput figureAdderNameField" value={name} onChange={onNameChange} placeholder="Name" />
+			<AdderName value={name} onChange={setName} />
 			<IconButton disabled={!name || existingAllies.has(name)} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
+};
+
+interface IOption {
+	value: string | number;
+	displayName?: string;
+}
+
+interface IAdderSelectProps {
+	displayName: string;
+	value: string | number | undefined;
+	onChange(value: string | undefined): void;
+	options: IOption[];
+	disabled?: boolean;
+}
+const AdderSelect: FC<IAdderSelectProps> = props => {
+	const { displayName, value, onChange, options, disabled } = props;
+	const onChangeWrapper: React.ChangeEventHandler<HTMLSelectElement> = useCallback(
+		(event: ChangeEvent<HTMLSelectElement>) => {
+			const value = event.target.value;
+			onChange(value === "default" ? undefined : value);
+		},
+		[onChange]
+	);
+	return (
+		<select className="figureAdderInput figureAdderSelect" value={value ?? "default"} onChange={onChangeWrapper} disabled={disabled}>
+			<option value="default">&lt;{displayName}&gt;</option>
+			{options.map(({ value, displayName }) => (
+				<option value={value} key={value}>
+					{displayName ?? value}
+				</option>
+			))}
+		</select>
+	);
+};
+
+interface IAdderNameProps {
+	value: string | undefined;
+	onChange(value: string): void;
+}
+const AdderName: FC<IAdderNameProps> = props => {
+	const { value, onChange } = props;
+	const onChangeWrapper = useCallback((event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value), [onChange]);
+	return <input className="figureAdderInput figureAdderNameField" value={value} onChange={onChangeWrapper} placeholder="Name" />;
 };

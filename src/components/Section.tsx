@@ -16,7 +16,7 @@ export const Section: FC<ISectionProps> = props => {
 	const { title, children, collapsible, headerIcons } = props;
 	const [expanded, setExpanded] = useState(true);
 
-	const onToggleExpand = useCallback(() => setExpanded(!expanded), [expanded, setExpanded]);
+	const onToggleExpand = useCallback(() => setExpanded(!expanded), [expanded]);
 
 	const allIcons = [
 		...(headerIcons ?? []),

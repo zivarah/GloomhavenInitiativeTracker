@@ -25,7 +25,7 @@ export interface ICharacterClassInfo extends ITrackableClassInfo {
 
 const iconPath = process.env.PUBLIC_URL + "/images/characters/";
 
-export const characterClassInfos: { [classId in CharacterClass]: ICharacterClassInfo } = {
+const characterClassInfos: { [classId in CharacterClass]: ICharacterClassInfo } = {
 	[CharacterClass.mindthief]: {
 		name: "Mindthief",
 		iconKey: "mindthief.png",
@@ -55,6 +55,14 @@ export const characterClassInfos: { [classId in CharacterClass]: ICharacterClass
 	},
 };
 
+export function getCharacterClassName(classId: CharacterClass): string {
+	return characterClassInfos[classId].name;
+}
+
 export function getCharacterIcon(classId: CharacterClass): string | undefined {
 	return iconPath + characterClassInfos[classId].iconKey;
+}
+
+export function getCharacterSummonables(classId: CharacterClass): string[] {
+	return characterClassInfos[classId].summonableAllies ?? [];
 }
