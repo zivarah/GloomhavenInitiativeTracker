@@ -2,7 +2,7 @@ import React, { FC, useCallback, useState } from "react";
 import "../styles/Section.css";
 import { IconButton, IIconButtonProps } from "./Buttons";
 
-interface IHeaderIconProps extends IIconButtonProps {
+export interface IHeaderIconProps extends IIconButtonProps {
 	hidden?: boolean;
 }
 

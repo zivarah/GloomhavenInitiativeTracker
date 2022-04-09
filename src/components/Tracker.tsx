@@ -7,11 +7,10 @@ import { createInitialState, ICookie, ITrackerState, TrackerAction, updateTracke
 import "../styles/Tracker.css";
 import { Button } from "./Buttons";
 import { FigureAdder, IExistingClasses } from "./FigureAdder";
-import { Section } from "./Section";
+import { IHeaderIconProps, Section } from "./Section";
 import { TrackedClassRow } from "./TrackedClassRow";
 
-interface ITrackerProps {}
-export const Tracker: FC<ITrackerProps> = props => {
+export const Tracker: FC = () => {
 	const [cookie, setCookie] = useCookies<"state", ICookie>([]);
 	const [state, dispatch] = useReducer<React.Reducer<ITrackerState, TrackerAction>, ICookie>(
 		updateTrackerState,
@@ -52,8 +51,14 @@ export const Tracker: FC<ITrackerProps> = props => {
 
 	const noFigures = state.orderedIds.length === 0;
 	const noCharacters = !Array.from(state.trackedClassesById.values()).some(isCharacter);
+	if (noFigures && showOptions) {
+		setshowOptions(false);
+	}
 
-	const headerIcons = useMemo(() => [{ iconKey: "bars", disabled: noFigures, onClick: onMenuClick }], [noFigures, onMenuClick]);
+	const headerIcons = useMemo<IHeaderIconProps[]>(
+		() => [{ iconKey: "bars", disabled: noFigures, onClick: onMenuClick }],
+		[noFigures, onMenuClick]
+	);
 
 	return (
 		<div className="trackerContainer">
