@@ -1,8 +1,7 @@
-import { getEnumValues } from "../common/EnumUtils";
-import { isBoolean, isNumber, isString } from "../common/TypeGuards";
-import { IAlly } from "./Ally";
+import { IAlly, isAlly } from "./Ally";
 import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
-import { getMonsterName, IMonster, MonsterClass } from "./Monster";
+import { getMonsterName, IMonster, isMonster, MonsterClass } from "./Monster";
+import { getSummonName, SummonClass } from "./Summon";
 import { ITrackableClass } from "./TrackableClass";
 
 export interface ITrackerState {
@@ -14,26 +13,80 @@ export interface ITrackerState {
 }
 
 export interface ICookie {
-	state?: {
-		trackedClassesById: readonly (readonly [number, ITrackableClass])[];
-		orderedIds: readonly number[];
-		nextId: number;
-		phase: RoundPhase;
-		tieExistsBetweenAny: boolean;
-	};
+	state?: never; // previous cookie value
+	classes?: readonly CookieClass[];
 }
+
+type CookieClass =
+	| { t: "m"; mc: MonsterClass }
+	| { t: "c"; cc: CharacterClass; n: string }
+	| { t: "s"; cc: CharacterClass; sc: SummonClass }
+	| { t: "a"; n: string };
 
 export enum RoundPhase {
 	choosingInitiative,
 	initiativesChosen,
 }
 
-export function createInitialState(cookie?: ICookie): ITrackerState {
-	if (cookieIsValid(cookie)) {
-		return { ...cookie.state, trackedClassesById: new Map(cookie.state.trackedClassesById) };
+export function createStateFromCookie(cookie?: ICookie): ITrackerState {
+	const { classes = [] } = cookie ?? {};
+
+	const state: ITrackerState = getEmptyState();
+
+	for (const cc of classes) {
+		let valid = false;
+
+		try {
+			switch (cc.t) {
+				case "c":
+					valid = addCharacter(state, cc.n, cc.cc);
+					break;
+				case "s":
+					// Safe because summons are always after the character in the cookie array
+					valid = addSummon(state, cc.cc, cc.sc);
+					break;
+				case "m":
+					valid = addMonster(state, cc.mc);
+					break;
+				case "a":
+					valid = addAlly(state, cc.n);
+					break;
+			}
+		} catch {}
+
+		if (!valid) {
+			return getEmptyState();
+		}
 	}
+	return state;
+}
+
+export function createCookieFromState(state: ITrackerState): ICookie {
+	const classes = Array.from(state.trackedClassesById.values()).flatMap((tc: ITrackableClass): CookieClass[] => {
+		if (isMonster(tc)) {
+			return [{ t: "m", mc: tc.monsterClass }];
+		}
+		if (isCharacter(tc)) {
+			const summons: CookieClass[] = (tc.activeSummons ?? []).map(summon => ({
+				t: "s",
+				cc: tc.characterClass,
+				sc: summon.summonClass,
+			}));
+			// Summons must always come after the character in the cookie array
+			return [{ t: "c", cc: tc.characterClass, n: tc.name }, ...summons];
+		}
+		if (isAlly(tc)) {
+			return [{ t: "a", n: tc.name }];
+		}
+		return [];
+	});
+
+	return { classes };
+}
+
+function getEmptyState(): ITrackerState {
 	return {
-		trackedClassesById: new Map<number, ITrackableClass>(),
+		trackedClassesById: new Map(),
 		orderedIds: [],
 		nextId: 1,
 		phase: RoundPhase.choosingInitiative,
@@ -41,47 +94,12 @@ export function createInitialState(cookie?: ICookie): ITrackerState {
 	};
 }
 
-function cookieIsValid(cookie?: ICookie): cookie is Required<ICookie> {
-	if (!cookie?.state) {
-		return false;
-	}
-	const { trackedClassesById, orderedIds, nextId, phase, tieExistsBetweenAny } = cookie.state;
-
-	if (
-		!Array.isArray(trackedClassesById) ||
-		!trackedClassesById.every(
-			idAndClass => Array.isArray(idAndClass) && isNumber(idAndClass[0]) && trackableClassIsValid(idAndClass[1])
-		)
-	) {
-		return false;
-	}
-	if (!Array.isArray(orderedIds) || !orderedIds.every(isNumber)) {
-		return false;
-	}
-	if (!isNumber(nextId)) {
-		return false;
-	}
-	if (!getEnumValues(RoundPhase).includes(phase)) {
-		return false;
-	}
-	if (!isBoolean(tieExistsBetweenAny)) {
-		return false;
-	}
-	return true;
-}
-
-function trackableClassIsValid(tc: ITrackableClass): boolean {
-	// TODO: could/maybe should make sure all non-required props are also correct,
-	// and make sure extra character/monster/summon props are correct as well.
-	return isNumber(tc.id) && isString(tc.name) && isString(tc.type);
-}
-
 export type TrackerDispatch = React.Dispatch<TrackerAction>;
 
 export type TrackerAction =
 	| { action: "addMonster"; monsterClass: MonsterClass }
 	| { action: "addCharacter"; characterClass: CharacterClass; name: string }
-	| { action: "addSummon"; characterClass: CharacterClass; name: string }
+	| { action: "addSummon"; characterClass: CharacterClass; summonClass: SummonClass }
 	| { action: "addAlly"; name: string }
 	| { action: "deleteTrackedClass"; id: number }
 	| { action: "deleteSummon"; characterId: number; summonId: number }
@@ -101,7 +119,7 @@ export function updateTrackerState(prevState: ITrackerState, action: TrackerActi
 			addCharacter(newState, action.name, action.characterClass);
 			break;
 		case "addSummon":
-			addSummon(newState, action.characterClass, action.name);
+			addSummon(newState, action.characterClass, action.summonClass);
 			break;
 		case "addAlly":
 			addAlly(newState, action.name);
@@ -131,7 +149,10 @@ export function updateTrackerState(prevState: ITrackerState, action: TrackerActi
 	return newState;
 }
 
-function addMonster(state: ITrackerState, monsterClassId: MonsterClass): void {
+function addMonster(state: ITrackerState, monsterClassId: MonsterClass): boolean {
+	if (!(monsterClassId in MonsterClass)) {
+		return false;
+	}
 	const newMonster: IMonster = {
 		type: "monster",
 		id: state.nextId++,
@@ -141,9 +162,13 @@ function addMonster(state: ITrackerState, monsterClassId: MonsterClass): void {
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newMonster.id, newMonster);
 	state.orderedIds = [...state.orderedIds, newMonster.id];
 	updateOnTrackedClassesChanged(state);
+	return true;
 }
 
-function addCharacter(state: ITrackerState, name: string, characterClassId: CharacterClass): void {
+function addCharacter(state: ITrackerState, name: string, characterClassId: CharacterClass): boolean {
+	if (!(characterClassId in CharacterClass)) {
+		return false;
+	}
 	const newCharacter: ICharacter = {
 		type: "character",
 		id: state.nextId++,
@@ -155,9 +180,10 @@ function addCharacter(state: ITrackerState, name: string, characterClassId: Char
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newCharacter.id, newCharacter);
 	state.orderedIds = [...state.orderedIds, newCharacter.id];
 	updateOnTrackedClassesChanged(state);
+	return true;
 }
 
-function addAlly(state: ITrackerState, name: string): void {
+function addAlly(state: ITrackerState, name: string): boolean {
 	const newAlly: IAlly = {
 		type: "ally",
 		id: state.nextId++,
@@ -167,26 +193,31 @@ function addAlly(state: ITrackerState, name: string): void {
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newAlly.id, newAlly);
 	state.orderedIds = [...state.orderedIds, newAlly.id];
 	updateOnTrackedClassesChanged(state);
+	return true;
 }
 
-function addSummon(state: ITrackerState, characterClass: CharacterClass, name: string): void {
+function addSummon(state: ITrackerState, characterClass: CharacterClass, summonClass: SummonClass): boolean {
 	let character = getCharacterByClassId(state, characterClass);
-	if (character) {
-		const activeSummons = character.activeSummons ? [...character.activeSummons] : [];
-		activeSummons.push({
-			type: "summon",
-			id: state.nextId++,
-			characterId: character.id,
-			name,
-			turnComplete: state.phase === RoundPhase.initiativesChosen,
-		});
-		const newCharacter = {
-			...character,
-			activeSummons,
-		};
-		const newTrackedClassesById = new Map(state.trackedClassesById).set(character.id, newCharacter);
-		state.trackedClassesById = newTrackedClassesById;
+	if (!character) {
+		return false;
 	}
+
+	const activeSummons = character.activeSummons ? [...character.activeSummons] : [];
+	activeSummons.push({
+		type: "summon",
+		id: state.nextId++,
+		characterId: character.id,
+		summonClass,
+		name: getSummonName(summonClass),
+		turnComplete: state.phase === RoundPhase.initiativesChosen,
+	});
+	const newCharacter = {
+		...character,
+		activeSummons,
+	};
+	const newTrackedClassesById = new Map(state.trackedClassesById).set(character.id, newCharacter);
+	state.trackedClassesById = newTrackedClassesById;
+	return true;
 }
 
 function deleteSummon(state: ITrackerState, characterId: number, summonId: number): void {

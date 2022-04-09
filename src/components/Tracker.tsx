@@ -3,7 +3,14 @@ import { useCookies } from "react-cookie";
 import { isAlly } from "../model/Ally";
 import { isCharacter } from "../model/Character";
 import { isMonster } from "../model/Monster";
-import { createInitialState, ICookie, ITrackerState, TrackerAction, updateTrackerState } from "../model/TrackerState";
+import {
+	createCookieFromState,
+	createStateFromCookie,
+	ICookie,
+	ITrackerState,
+	TrackerAction,
+	updateTrackerState,
+} from "../model/TrackerState";
 import "../styles/Tracker.css";
 import { Button } from "./Buttons";
 import { FigureAdder, IExistingClasses } from "./FigureAdder";
@@ -11,27 +18,28 @@ import { IHeaderIconProps, Section } from "./Section";
 import { TrackedClassRow } from "./TrackedClassRow";
 
 export const Tracker: FC = () => {
-	const [cookie, setCookie] = useCookies<"state", ICookie>([]);
+	const [cookie, setCookie, removeCookie] = useCookies<keyof ICookie, ICookie>([]);
 	const [state, dispatch] = useReducer<React.Reducer<ITrackerState, TrackerAction>, ICookie>(
 		updateTrackerState,
 		cookie,
-		createInitialState
+		createStateFromCookie
 	);
 
-	const [showOptions, setshowOptions] = useState(false);
+	const [showOptions, setShowOptions] = useState(false);
 
-	const onMenuClick = useCallback(() => setshowOptions(!showOptions), [showOptions]);
+	const onMenuClick = useCallback(() => setShowOptions(!showOptions), [showOptions]);
 
 	useEffect(() => {
 		const expireDate = new Date();
 		expireDate.setFullYear(expireDate.getFullYear() + 1);
-		const stateCookie: ICookie["state"] = { ...state, trackedClassesById: Array.from(state.trackedClassesById.entries()) };
+		const newCookie: ICookie = createCookieFromState(state);
 
 		// Simple and fairly effective deep object comparison, but not perfect.
-		if (JSON.stringify(stateCookie) !== JSON.stringify(cookie.state)) {
-			setCookie("state", stateCookie, { expires: expireDate });
+		if (JSON.stringify(newCookie.classes) !== JSON.stringify(cookie.classes)) {
+			removeCookie("state");
+			setCookie("classes", newCookie.classes, { expires: expireDate });
 		}
-	}, [setCookie, state, cookie.state]);
+	}, [setCookie, removeCookie, state, cookie.classes]);
 
 	const existingFigures = useMemo((): IExistingClasses => {
 		const allClasses = Array.from(state.trackedClassesById.values());
@@ -52,7 +60,7 @@ export const Tracker: FC = () => {
 	const noFigures = state.orderedIds.length === 0;
 	const noCharacters = !Array.from(state.trackedClassesById.values()).some(isCharacter);
 	if (noFigures && showOptions) {
-		setshowOptions(false);
+		setShowOptions(false);
 	}
 
 	const headerIcons = useMemo<IHeaderIconProps[]>(

@@ -20,7 +20,7 @@ export enum CharacterClass {
 }
 
 export interface ICharacterClassInfo extends ITrackableClassInfo {
-	summonableAllies?: string[];
+	iconKey: string;
 }
 
 const iconPath = process.env.PUBLIC_URL + "/images/characters/";
@@ -29,7 +29,6 @@ const characterClassInfos: { [classId in CharacterClass]: ICharacterClassInfo } 
 	[CharacterClass.mindthief]: {
 		name: "Mindthief",
 		iconKey: "mindthief.png",
-		summonableAllies: ["Rat Swarm", "Monstrous Rat", "Rat King"],
 	},
 	[CharacterClass.scoundrel]: {
 		name: "Scoundrel",
@@ -38,7 +37,6 @@ const characterClassInfos: { [classId in CharacterClass]: ICharacterClassInfo } 
 	[CharacterClass.spellweaver]: {
 		name: "Spellweaver",
 		iconKey: "spellweaver.png",
-		summonableAllies: ["Mystic Ally", "Burning Avatar"],
 	},
 	[CharacterClass.cragheart]: {
 		name: "Cragheart",
@@ -51,7 +49,6 @@ const characterClassInfos: { [classId in CharacterClass]: ICharacterClassInfo } 
 	[CharacterClass.tinkerer]: {
 		name: "Tinkerer",
 		iconKey: "tinkerer.png",
-		summonableAllies: ["Decoy", "Battle Bot", "Kill Bot"],
 	},
 };
 
@@ -61,8 +58,4 @@ export function getCharacterClassName(classId: CharacterClass): string {
 
 export function getCharacterIcon(classId: CharacterClass): string | undefined {
 	return iconPath + characterClassInfos[classId].iconKey;
-}
-
-export function getCharacterSummonables(classId: CharacterClass): string[] {
-	return characterClassInfos[classId].summonableAllies ?? [];
 }

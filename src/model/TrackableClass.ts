@@ -11,5 +11,4 @@ export interface ITrackableClass<TType extends string = string> {
 
 export interface ITrackableClassInfo {
 	name: string;
-	iconKey?: string;
 }

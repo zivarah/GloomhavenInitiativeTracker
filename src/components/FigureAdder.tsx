@@ -1,8 +1,8 @@
 import { ChangeEvent, FC, useCallback, useMemo, useState } from "react";
 import { getEnumValues, parseNumericEnum } from "../common/EnumUtils";
-import { CharacterClass, getCharacterClassName, getCharacterSummonables } from "../model/Character";
+import { CharacterClass, getCharacterClassName } from "../model/Character";
 import { getMonsterName, MonsterClass } from "../model/Monster";
-import { ItemSummonables } from "../model/Summon";
+import { getCharacterSummonables, getSummonName, SummonClass } from "../model/Summon";
 import { TrackerDispatch } from "../model/TrackerState";
 import "../styles/FigureAdder.css";
 import { IconButton } from "./Buttons";
@@ -118,19 +118,22 @@ interface ISummonAdderProps {
 const SummonAdder: FC<ISummonAdderProps> = props => {
 	const { existingCharacters, dispatch } = props;
 	const [characterClass, setCharacterClass] = useState<CharacterClass>();
-	const [name, setName] = useState<string>();
+	const [summonClass, setSummonClass] = useState<SummonClass>();
 
-	const onClassChange = useCallback((value: string | undefined) => {
+	const onCharacterChange = useCallback((value: string | undefined) => {
 		setCharacterClass(parseNumericEnum(CharacterClass, value));
+	}, []);
+	const onSummonChange = useCallback((value: string | undefined) => {
+		setSummonClass(parseNumericEnum(SummonClass, value));
 	}, []);
 
 	const onAccept = useCallback(() => {
-		if (characterClass && name) {
-			dispatch({ action: "addSummon", name, characterClass });
+		if (characterClass && summonClass) {
+			dispatch({ action: "addSummon", summonClass, characterClass });
 			setCharacterClass(undefined);
-			setName(undefined);
+			setSummonClass(undefined);
 		}
-	}, [characterClass, name, dispatch]);
+	}, [characterClass, summonClass, dispatch]);
 
 	const characterOptions = useMemo(
 		(): IOption[] => Array.from(existingCharacters).map(classId => ({ value: classId, displayName: getCharacterClassName(classId) })),
@@ -138,16 +141,22 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 	);
 	const summonOptions = useMemo((): IOption[] => {
 		const charSummonables = characterClass ? getCharacterSummonables(characterClass) : [];
-		return [...charSummonables, ...ItemSummonables].map(value => ({ value }));
+		return charSummonables.map(summonId => ({ value: summonId, displayName: getSummonName(summonId) }));
 	}, [characterClass]);
 
 	return (
 		<div>
 			Summon
 			<br />
-			<AdderSelect displayName="Character" value={characterClass} options={characterOptions} onChange={onClassChange} />
-			<AdderSelect displayName="Summon" value={name} options={summonOptions} onChange={setName} disabled={!characterClass} />
-			<IconButton disabled={!characterClass || !name} onClick={onAccept} iconKey="plus" />
+			<AdderSelect displayName="Character" value={characterClass} options={characterOptions} onChange={onCharacterChange} />
+			<AdderSelect
+				displayName="Summon"
+				value={summonClass}
+				options={summonOptions}
+				onChange={onSummonChange}
+				disabled={!characterClass}
+			/>
+			<IconButton disabled={!characterClass || !summonClass} onClick={onAccept} iconKey="plus" />
 		</div>
 	);
 };
