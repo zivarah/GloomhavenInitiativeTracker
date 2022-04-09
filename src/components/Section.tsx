@@ -32,7 +32,7 @@ export const Section: FC<ISectionProps> = props => {
 						{allIcons
 							.filter(i => !i.hidden)
 							.map(({ iconKey, disabled, onClick }) => (
-								<IconButton iconKey={iconKey} disabled={disabled} onClick={onClick} />
+								<IconButton key={iconKey} iconKey={iconKey} disabled={disabled} onClick={onClick} />
 							))}
 					</div>
 				)}
