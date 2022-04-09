@@ -1,14 +1,14 @@
 import React from "react";
 import { CookiesProvider } from "react-cookie";
 import ReactDOM from "react-dom";
-import App from "./components/App";
+import { Tracker } from "./components/Tracker";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 
 ReactDOM.render(
 	<React.StrictMode>
 		<CookiesProvider>
-			<App />
+			<Tracker />
 		</CookiesProvider>
 	</React.StrictMode>,
 	document.getElementById("root")
