@@ -1,4 +1,4 @@
-export interface ITrackableClass<TType extends string = string> {
+export interface ITrackableClass<TType extends TrackableClassType = TrackableClassType> {
 	type: TType;
 	id: number;
 	name: string;
@@ -11,4 +11,11 @@ export interface ITrackableClass<TType extends string = string> {
 
 export interface ITrackableClassInfo {
 	name: string;
+}
+
+export enum TrackableClassType {
+	character = 1,
+	monster,
+	summon,
+	ally,
 }

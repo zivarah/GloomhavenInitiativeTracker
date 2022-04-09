@@ -2,7 +2,7 @@ import { IAlly, isAlly } from "./Ally";
 import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
 import { getMonsterName, IMonster, isMonster, MonsterClass } from "./Monster";
 import { getSummonName, SummonClass } from "./Summon";
-import { ITrackableClass } from "./TrackableClass";
+import { ITrackableClass, TrackableClassType } from "./TrackableClass";
 
 export interface ITrackerState {
 	trackedClassesById: ReadonlyMap<number, ITrackableClass>;
@@ -18,10 +18,10 @@ export interface ICookie {
 }
 
 type CookieClass =
-	| { t: "m"; mc: MonsterClass }
-	| { t: "c"; cc: CharacterClass; n: string }
-	| { t: "s"; cc: CharacterClass; sc: SummonClass }
-	| { t: "a"; n: string };
+	| { t: TrackableClassType.monster; mc: MonsterClass }
+	| { t: TrackableClassType.character; cc: CharacterClass; n: string }
+	| { t: TrackableClassType.summon; cc: CharacterClass; sc: SummonClass }
+	| { t: TrackableClassType.ally; n: string };
 
 export enum RoundPhase {
 	choosingInitiative,
@@ -38,17 +38,17 @@ export function createStateFromCookie(cookie?: ICookie): ITrackerState {
 
 		try {
 			switch (cc.t) {
-				case "c":
+				case TrackableClassType.character:
 					valid = addCharacter(state, cc.n, cc.cc);
 					break;
-				case "s":
+				case TrackableClassType.summon:
 					// Safe because summons are always after the character in the cookie array
 					valid = addSummon(state, cc.cc, cc.sc);
 					break;
-				case "m":
+				case TrackableClassType.monster:
 					valid = addMonster(state, cc.mc);
 					break;
-				case "a":
+				case TrackableClassType.ally:
 					valid = addAlly(state, cc.n);
 					break;
 			}
@@ -64,19 +64,19 @@ export function createStateFromCookie(cookie?: ICookie): ITrackerState {
 export function createCookieFromState(state: ITrackerState): ICookie {
 	const classes = Array.from(state.trackedClassesById.values()).flatMap((tc: ITrackableClass): CookieClass[] => {
 		if (isMonster(tc)) {
-			return [{ t: "m", mc: tc.monsterClass }];
+			return [{ t: TrackableClassType.monster, mc: tc.monsterClass }];
 		}
 		if (isCharacter(tc)) {
 			const summons: CookieClass[] = (tc.activeSummons ?? []).map(summon => ({
-				t: "s",
+				t: TrackableClassType.summon,
 				cc: tc.characterClass,
 				sc: summon.summonClass,
 			}));
 			// Summons must always come after the character in the cookie array
-			return [{ t: "c", cc: tc.characterClass, n: tc.name }, ...summons];
+			return [{ t: TrackableClassType.character, cc: tc.characterClass, n: tc.name }, ...summons];
 		}
 		if (isAlly(tc)) {
-			return [{ t: "a", n: tc.name }];
+			return [{ t: TrackableClassType.ally, n: tc.name }];
 		}
 		return [];
 	});
@@ -154,7 +154,7 @@ function addMonster(state: ITrackerState, monsterClassId: MonsterClass): boolean
 		return false;
 	}
 	const newMonster: IMonster = {
-		type: "monster",
+		type: TrackableClassType.monster,
 		id: state.nextId++,
 		name: getMonsterName(monsterClassId),
 		monsterClass: monsterClassId,
@@ -170,7 +170,7 @@ function addCharacter(state: ITrackerState, name: string, characterClassId: Char
 		return false;
 	}
 	const newCharacter: ICharacter = {
-		type: "character",
+		type: TrackableClassType.character,
 		id: state.nextId++,
 		name,
 		characterClass: characterClassId,
@@ -185,7 +185,7 @@ function addCharacter(state: ITrackerState, name: string, characterClassId: Char
 
 function addAlly(state: ITrackerState, name: string): boolean {
 	const newAlly: IAlly = {
-		type: "ally",
+		type: TrackableClassType.ally,
 		id: state.nextId++,
 		name,
 	};
@@ -204,7 +204,7 @@ function addSummon(state: ITrackerState, characterClass: CharacterClass, summonC
 
 	const activeSummons = character.activeSummons ? [...character.activeSummons] : [];
 	activeSummons.push({
-		type: "summon",
+		type: TrackableClassType.summon,
 		id: state.nextId++,
 		characterId: character.id,
 		summonClass,

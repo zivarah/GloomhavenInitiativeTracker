@@ -1,13 +1,13 @@
 import { ISummon } from "./Summon";
-import { ITrackableClass, ITrackableClassInfo } from "./TrackableClass";
+import { ITrackableClass, ITrackableClassInfo, TrackableClassType } from "./TrackableClass";
 
-export interface ICharacter extends ITrackableClass<"character"> {
+export interface ICharacter extends ITrackableClass<TrackableClassType.character> {
 	characterClass: CharacterClass;
 	activeSummons?: readonly ISummon[];
 }
 
 export function isCharacter(trackableClass: ITrackableClass): trackableClass is ICharacter {
-	return trackableClass.type === "character";
+	return trackableClass.type === TrackableClassType.character;
 }
 
 export enum CharacterClass {

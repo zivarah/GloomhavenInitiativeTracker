@@ -1,14 +1,14 @@
 import { CharacterClass } from "./Character";
-import { ITrackableClass, ITrackableClassInfo } from "./TrackableClass";
+import { ITrackableClass, ITrackableClassInfo, TrackableClassType } from "./TrackableClass";
 
-export interface ISummon extends ITrackableClass<"summon"> {
+export interface ISummon extends ITrackableClass<TrackableClassType.summon> {
 	/** The id of the character that summoned this summon */
 	characterId: number;
 	summonClass: SummonClass;
 }
 
 export function isSummon(trackableClass: ITrackableClass): trackableClass is ISummon {
-	return trackableClass.type === "summon";
+	return trackableClass.type === TrackableClassType.summon;
 }
 
 export enum SummonClass {
