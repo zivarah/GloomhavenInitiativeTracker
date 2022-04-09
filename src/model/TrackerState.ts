@@ -1,4 +1,5 @@
-import { getEnumValues } from "../utils/EnumUtils";
+import { getEnumValues } from "../common/EnumUtils";
+import { isBoolean, isNumber, isString } from "../common/TypeGuards";
 import { IAlly } from "./Ally";
 import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
 import { getMonsterName, IMonster, MonsterClass } from "./Monster";
@@ -26,6 +27,7 @@ export enum RoundPhase {
 	choosingInitiative,
 	initiativesChosen,
 }
+
 export function createInitialState(cookie?: ICookie): ITrackerState {
 	if (cookieIsValid(cookie)) {
 		return { ...cookie.state, trackedClassesById: new Map(cookie.state.trackedClassesById) };
@@ -47,23 +49,22 @@ function cookieIsValid(cookie?: ICookie): cookie is Required<ICookie> {
 
 	if (
 		!Array.isArray(trackedClassesById) ||
-		trackedClassesById.length === 0 ||
 		!trackedClassesById.every(
-			idAndClass => Array.isArray(idAndClass) && typeof idAndClass[0] === "number" && trackableClassIsValid(idAndClass[1])
+			idAndClass => Array.isArray(idAndClass) && isNumber(idAndClass[0]) && trackableClassIsValid(idAndClass[1])
 		)
 	) {
 		return false;
 	}
-	if (!Array.isArray(orderedIds) || !orderedIds.every(id => typeof id === "number")) {
+	if (!Array.isArray(orderedIds) || !orderedIds.every(isNumber)) {
 		return false;
 	}
-	if (typeof nextId !== "number") {
+	if (!isNumber(nextId)) {
 		return false;
 	}
 	if (!getEnumValues(RoundPhase).includes(phase)) {
 		return false;
 	}
-	if (typeof tieExistsBetweenAny !== "boolean") {
+	if (!isBoolean(tieExistsBetweenAny)) {
 		return false;
 	}
 	return true;
@@ -72,7 +73,7 @@ function cookieIsValid(cookie?: ICookie): cookie is Required<ICookie> {
 function trackableClassIsValid(tc: ITrackableClass): boolean {
 	// TODO: could/maybe should make sure all non-required props are also correct,
 	// and make sure extra character/monster/summon props are correct as well.
-	return typeof tc.id === "number" && typeof tc.name === "string" && typeof tc.type === "string";
+	return isNumber(tc.id) && isString(tc.name) && isString(tc.type);
 }
 
 export type TrackerDispatch = React.Dispatch<TrackerAction>;
@@ -130,7 +131,7 @@ export function updateTrackerState(prevState: ITrackerState, action: TrackerActi
 	return newState;
 }
 
-export function addMonster(state: ITrackerState, monsterClassId: MonsterClass): void {
+function addMonster(state: ITrackerState, monsterClassId: MonsterClass): void {
 	const newMonster: IMonster = {
 		type: "monster",
 		id: state.nextId++,
@@ -142,7 +143,7 @@ export function addMonster(state: ITrackerState, monsterClassId: MonsterClass): 
 	updateOnTrackedClassesChanged(state);
 }
 
-export function addCharacter(state: ITrackerState, name: string, characterClassId: CharacterClass): void {
+function addCharacter(state: ITrackerState, name: string, characterClassId: CharacterClass): void {
 	const newCharacter: ICharacter = {
 		type: "character",
 		id: state.nextId++,
@@ -156,7 +157,7 @@ export function addCharacter(state: ITrackerState, name: string, characterClassI
 	updateOnTrackedClassesChanged(state);
 }
 
-export function addAlly(state: ITrackerState, name: string): void {
+function addAlly(state: ITrackerState, name: string): void {
 	const newAlly: IAlly = {
 		type: "ally",
 		id: state.nextId++,

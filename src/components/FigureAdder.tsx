@@ -1,10 +1,10 @@
 import { ChangeEvent, FC, useCallback, useMemo, useState } from "react";
+import { getEnumValues, parseNumericEnum } from "../common/EnumUtils";
 import { CharacterClass, getCharacterClassName, getCharacterSummonables } from "../model/Character";
 import { getMonsterName, MonsterClass } from "../model/Monster";
 import { ItemSummonables } from "../model/Summon";
 import { TrackerDispatch } from "../model/TrackerState";
 import "../styles/FigureAdder.css";
-import { getEnumValues, parseNumericEnum } from "../utils/EnumUtils";
 import { IconButton } from "./Buttons";
 
 export interface IExistingClasses {
