@@ -194,6 +194,7 @@ const classSummons: { [characterClass in CharacterClass]?: SummonClass[] } = {
 	[CharacterClass.spellweaver]: [SummonClass.mysticAlly, SummonClass.burningAvatar],
 	[CharacterClass.tinkerer]: [SummonClass.decoy, SummonClass.battleBot, SummonClass.killBot],
 	[CharacterClass.beastTyrant]: [
+		SummonClass.bear,
 		SummonClass.greenAdder,
 		SummonClass.tatteredWolf,
 		SummonClass.redFalcon,
