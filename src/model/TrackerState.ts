@@ -116,7 +116,7 @@ export function updateTrackerState(prevState: ITrackerState, action: TrackerActi
 			addMonster(newState, action.monsterClass);
 			break;
 		case "addCharacter":
-			addCharacter(newState, action.name, action.characterClass);
+			addCharacter(newState, action.name, action.characterClass, true);
 			break;
 		case "addSummon":
 			addSummon(newState, action.characterClass, action.summonClass);
@@ -165,7 +165,7 @@ function addMonster(state: ITrackerState, monsterClassId: MonsterClass): boolean
 	return true;
 }
 
-function addCharacter(state: ITrackerState, name: string, characterClassId: CharacterClass): boolean {
+function addCharacter(state: ITrackerState, name: string, characterClassId: CharacterClass, addAutoSummons?: boolean): boolean {
 	if (!(characterClassId in CharacterClass)) {
 		return false;
 	}
@@ -181,7 +181,9 @@ function addCharacter(state: ITrackerState, name: string, characterClassId: Char
 	state.orderedIds = [...state.orderedIds, newCharacter.id];
 	updateOnTrackedClassesChanged(state);
 
-	getCharacterAutoSummons(characterClassId).forEach(autoSummon => addSummon(state, characterClassId, autoSummon));
+	if (addAutoSummons) {
+		getCharacterAutoSummons(characterClassId).forEach(autoSummon => addSummon(state, characterClassId, autoSummon));
+	}
 	return true;
 }
 
