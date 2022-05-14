@@ -45,6 +45,9 @@ export const Tracker: FC = () => {
 		const allClasses = Array.from(state.trackedClassesById.values());
 		return {
 			characters: new Set(allClasses.filter(isCharacter).map(c => c.characterClass)),
+			summons: new Map(
+				allClasses.filter(isCharacter).map(c => [c.characterClass, new Set(c.activeSummons?.map(s => s.summonClass))])
+			),
 			monsters: new Set(allClasses.filter(isMonster).map(c => c.monsterClass)),
 			allies: new Set(allClasses.filter(isAlly).map(a => a.name)),
 		};

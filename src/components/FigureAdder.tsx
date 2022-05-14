@@ -9,6 +9,7 @@ import { IconButton } from "./Buttons";
 
 export interface IExistingClasses {
 	characters: ReadonlySet<CharacterClass>;
+	summons: ReadonlyMap<CharacterClass, ReadonlySet<SummonClass>>;
 	monsters: ReadonlySet<MonsterClass>;
 	allies: ReadonlySet<string>;
 }
@@ -25,7 +26,7 @@ export const FigureAdder: FC<IFigureAdderProps> = props => {
 		<div className="figureAdderOuter">
 			<MonsterAdder existingMonsters={existingFigures.monsters} dispatch={dispatch} />
 			<CharacterAdder existingCharacters={existingFigures.characters} dispatch={dispatch} />
-			<SummonAdder existingCharacters={existingFigures.characters} dispatch={dispatch} />
+			<SummonAdder existingCharacters={existingFigures.characters} existingSummons={existingFigures.summons} dispatch={dispatch} />
 			<AllyAdder existingAllies={existingFigures.allies} dispatch={dispatch} />
 		</div>
 	);
@@ -117,10 +118,11 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 
 interface ISummonAdderProps {
 	existingCharacters: ReadonlySet<CharacterClass>;
+	existingSummons: ReadonlyMap<CharacterClass, ReadonlySet<SummonClass>>;
 	dispatch: TrackerDispatch;
 }
 const SummonAdder: FC<ISummonAdderProps> = props => {
-	const { existingCharacters, dispatch } = props;
+	const { existingCharacters, existingSummons, dispatch } = props;
 	const [characterClass, setCharacterClass] = useState<CharacterClass>();
 	const [summonClass, setSummonClass] = useState<SummonClass>();
 
@@ -150,14 +152,19 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 		[existingCharacters]
 	);
 	const summonOptions = useMemo((): IOption[] => {
-		const charSummonables = characterClass ? getCharacterSummonables(characterClass) : [];
+		if (!characterClass) {
+			return [];
+		}
+		const charSummonables = getCharacterSummonables(characterClass);
 		return sortOptions(
-			charSummonables.map(summonId => ({
-				value: summonId,
-				displayName: getSummonName(summonId),
-			}))
+			charSummonables
+				.filter(summonClass => !existingSummons.get(characterClass)?.has(summonClass))
+				.map(summonClass => ({
+					value: summonClass,
+					displayName: getSummonName(summonClass),
+				}))
 		);
-	}, [characterClass]);
+	}, [characterClass, existingSummons]);
 
 	return (
 		<div>
