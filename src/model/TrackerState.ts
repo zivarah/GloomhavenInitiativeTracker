@@ -1,7 +1,7 @@
 import { IAlly, isAlly } from "./Ally";
 import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
 import { getMonsterName, IMonster, isMonster, MonsterClass } from "./Monster";
-import { getSummonName, SummonClass } from "./Summon";
+import { getCharacterAutoSummons, getSummonName, SummonClass } from "./Summon";
 import { ITrackableClass, TrackableClassType } from "./TrackableClass";
 
 export interface ITrackerState {
@@ -180,6 +180,8 @@ function addCharacter(state: ITrackerState, name: string, characterClassId: Char
 	state.trackedClassesById = new Map(state.trackedClassesById).set(newCharacter.id, newCharacter);
 	state.orderedIds = [...state.orderedIds, newCharacter.id];
 	updateOnTrackedClassesChanged(state);
+
+	getCharacterAutoSummons(characterClassId).forEach(autoSummon => addSummon(state, characterClassId, autoSummon));
 	return true;
 }
 
