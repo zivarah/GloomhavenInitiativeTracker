@@ -17,10 +17,13 @@ export enum CharacterClass {
 	cragheart,
 	brute,
 	tinkerer,
+	doomstalker,
+	plagueherald,
 }
 
 export interface ICharacterClassInfo extends ITrackableClassInfo {
 	iconKey: string;
+	spoilerAlias?: string;
 }
 
 const iconPath = process.env.PUBLIC_URL + "/images/characters/";
@@ -50,10 +53,27 @@ const characterClassInfos: { [classId in CharacterClass]: ICharacterClassInfo } 
 		name: "Tinkerer",
 		iconKey: "tinkerer.png",
 	},
+	[CharacterClass.doomstalker]: {
+		name: "Doomstalker",
+		iconKey: "doomstalker.png",
+		spoilerAlias: "Angry Face",
+	},
+	[CharacterClass.plagueherald]: {
+		name: "Plagueherald",
+		iconKey: "plagueherald.png",
+		spoilerAlias: "Cthulu",
+	},
 };
+
+// To convert all webp icons into trimmed, resized PNGs:
+// mogrify -format png -trim -resize 48x48 *.webp
 
 export function getCharacterClassName(classId: CharacterClass): string {
 	return characterClassInfos[classId].name;
+}
+
+export function getCharacterSpoilerAlias(classId: CharacterClass): string | undefined {
+	return characterClassInfos[classId].spoilerAlias;
 }
 
 export function getCharacterIcon(classId: CharacterClass): string | undefined {

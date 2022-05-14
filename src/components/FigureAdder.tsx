@@ -1,6 +1,6 @@
 import { ChangeEvent, FC, useCallback, useMemo, useState } from "react";
 import { getEnumValues, parseNumericEnum } from "../common/EnumUtils";
-import { CharacterClass, getCharacterClassName } from "../model/Character";
+import { CharacterClass, getCharacterClassName, getCharacterSpoilerAlias } from "../model/Character";
 import { getMonsterName, MonsterClass } from "../model/Monster";
 import { getCharacterSummonables, getSummonName, SummonClass } from "../model/Summon";
 import { TrackerDispatch } from "../model/TrackerState";
@@ -53,9 +53,11 @@ const MonsterAdder: FC<IMonsterAdderProps> = props => {
 
 	const monsterOptions = useMemo(
 		(): IOption[] =>
-			getEnumValues(MonsterClass)
-				.filter(classId => !existingMonsters.has(classId))
-				.map(classId => ({ value: classId, displayName: getMonsterName(classId) })),
+			sortOptions(
+				getEnumValues(MonsterClass)
+					.filter(classId => !existingMonsters.has(classId))
+					.map(classId => ({ value: classId, displayName: getMonsterName(classId) }))
+			),
 		[existingMonsters]
 	);
 
@@ -94,9 +96,11 @@ const CharacterAdder: FC<ICharacterAdderProps> = props => {
 
 	const classOptions = useMemo(
 		(): IOption[] =>
-			getEnumValues(CharacterClass)
-				.filter(classId => !existingCharacters.has(classId))
-				.map(classId => ({ value: classId, displayName: getCharacterClassName(classId) })),
+			sortOptions(
+				getEnumValues(CharacterClass)
+					.filter(classId => !existingCharacters.has(classId))
+					.map(classId => ({ value: classId, displayName: getCharacterSpoilerAlias(classId) ?? getCharacterClassName(classId) }))
+			),
 		[existingCharacters]
 	);
 
@@ -136,12 +140,23 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 	}, [characterClass, summonClass, dispatch]);
 
 	const characterOptions = useMemo(
-		(): IOption[] => Array.from(existingCharacters).map(classId => ({ value: classId, displayName: getCharacterClassName(classId) })),
+		(): IOption[] =>
+			sortOptions(
+				Array.from(existingCharacters).map(classId => ({
+					value: classId,
+					displayName: getCharacterClassName(classId),
+				}))
+			),
 		[existingCharacters]
 	);
 	const summonOptions = useMemo((): IOption[] => {
 		const charSummonables = characterClass ? getCharacterSummonables(characterClass) : [];
-		return charSummonables.map(summonId => ({ value: summonId, displayName: getSummonName(summonId) }));
+		return sortOptions(
+			charSummonables.map(summonId => ({
+				value: summonId,
+				displayName: getSummonName(summonId),
+			}))
+		);
 	}, [characterClass]);
 
 	return (
@@ -190,7 +205,7 @@ const AllyAdder: FC<IAllyAdderProps> = props => {
 
 interface IOption {
 	value: string | number;
-	displayName?: string;
+	displayName: string;
 }
 
 interface IAdderSelectProps {
@@ -230,3 +245,7 @@ const AdderName: FC<IAdderNameProps> = props => {
 	const onChangeWrapper = useCallback((event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value), [onChange]);
 	return <input className="figureAdderInput figureAdderNameField" value={value} onChange={onChangeWrapper} placeholder="Name" />;
 };
+
+function sortOptions(options: IOption[]): IOption[] {
+	return options.sort((a, b) => a.displayName.localeCompare(b.displayName));
+}
