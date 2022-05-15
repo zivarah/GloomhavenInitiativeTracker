@@ -35,30 +35,23 @@ export enum RoundPhase {
 export function createStateFromCookie(cookie?: ICookie): TrackerState {
 	const { classes = [] } = cookie ?? {};
 
-	let state: TrackerState = TrackerState.createEmptyState();
-
-	for (const cc of classes) {
-		try {
+	try {
+		return classes.reduce((state, cc) => {
 			switch (cc.t) {
 				case TrackableClassType.character:
-					state = state.withCharacter(cc.n, cc.cc);
-					break;
+					return state.withCharacter(cc.n, cc.cc);
 				case TrackableClassType.summon:
 					// Safe because summons are always after the character in the cookie array
-					state = state.withSummon(cc.cc, cc.sc);
-					break;
+					return state.withSummon(cc.cc, cc.sc);
 				case TrackableClassType.monster:
-					state = state.withMonster(cc.mc);
-					break;
+					return state.withMonster(cc.mc);
 				case TrackableClassType.ally:
-					state = state.withAlly(cc.n);
-					break;
+					return state.withAlly(cc.n);
 			}
-		} catch {
-			return TrackerState.createEmptyState();
-		}
+		}, TrackerState.initialState());
+	} catch {
+		return TrackerState.initialState();
 	}
-	return state;
 }
 
 export function createCookieFromState(state: ITrackerState): ICookie {
@@ -141,7 +134,7 @@ export class TrackerState implements ITrackerStateInternal {
 		this.tieExists = fromState.tieExists;
 	}
 
-	public static createEmptyState(): TrackerState {
+	public static initialState(): TrackerState {
 		return new TrackerState({
 			trackedClassesById: ImmutableMap.empty(),
 			orderedIds: [],
