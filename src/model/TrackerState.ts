@@ -1,19 +1,23 @@
-import { IAlly, isAlly } from "./Ally";
+import { ImmutableMap } from "../common/ImmutableMap";
+import { isAlly } from "./Ally";
 import { CharacterClass, getCharacterIcon, ICharacter, isCharacter } from "./Character";
-import { getMonsterName, IMonster, isMonster, MonsterClass } from "./Monster";
+import { getMonsterName, isMonster, MonsterClass } from "./Monster";
 import { getCharacterAutoSummons, getSummonName, SummonClass } from "./Summon";
 import { ITrackableClass, TrackableClassType } from "./TrackableClass";
 
 export interface ITrackerState {
-	trackedClassesById: ReadonlyMap<number, ITrackableClass>;
-	orderedIds: readonly number[];
-	nextId: number;
-	phase: RoundPhase;
-	tieExistsBetweenAny: boolean;
+	readonly trackedClassesById: ReadonlyMap<number, ITrackableClass>;
+	readonly orderedIds: readonly number[];
+	readonly nextId: number;
+	readonly phase: RoundPhase;
+	readonly tieExists: boolean;
+}
+
+interface ITrackerStateInternal extends ITrackerState {
+	readonly trackedClassesById: ImmutableMap<number, ITrackableClass>;
 }
 
 export interface ICookie {
-	state?: never; // previous cookie value
 	classes?: readonly CookieClass[];
 }
 
@@ -28,34 +32,30 @@ export enum RoundPhase {
 	initiativesChosen,
 }
 
-export function createStateFromCookie(cookie?: ICookie): ITrackerState {
+export function createStateFromCookie(cookie?: ICookie): TrackerState {
 	const { classes = [] } = cookie ?? {};
 
-	const state: ITrackerState = getEmptyState();
+	let state: TrackerState = TrackerState.createEmptyState();
 
 	for (const cc of classes) {
-		let valid = false;
-
 		try {
 			switch (cc.t) {
 				case TrackableClassType.character:
-					valid = addCharacter(state, cc.n, cc.cc);
+					state = state.withCharacter(cc.n, cc.cc);
 					break;
 				case TrackableClassType.summon:
 					// Safe because summons are always after the character in the cookie array
-					valid = addSummon(state, cc.cc, cc.sc);
+					state = state.withSummon(cc.cc, cc.sc);
 					break;
 				case TrackableClassType.monster:
-					valid = addMonster(state, cc.mc);
+					state = state.withMonster(cc.mc);
 					break;
 				case TrackableClassType.ally:
-					valid = addAlly(state, cc.n);
+					state = state.withAlly(cc.n);
 					break;
 			}
-		} catch {}
-
-		if (!valid) {
-			return getEmptyState();
+		} catch {
+			return TrackerState.createEmptyState();
 		}
 	}
 	return state;
@@ -84,16 +84,6 @@ export function createCookieFromState(state: ITrackerState): ICookie {
 	return { classes };
 }
 
-function getEmptyState(): ITrackerState {
-	return {
-		trackedClassesById: new Map(),
-		orderedIds: [],
-		nextId: 1,
-		phase: RoundPhase.choosingInitiative,
-		tieExistsBetweenAny: false,
-	};
-}
-
 export type TrackerDispatch = React.Dispatch<TrackerAction>;
 
 export type TrackerAction =
@@ -109,163 +99,178 @@ export type TrackerAction =
 	| { action: "beginRound" }
 	| { action: "shift"; id: number; direction: "up" | "down" };
 
-export function updateTrackerState(prevState: ITrackerState, action: TrackerAction): ITrackerState {
-	const newState = { ...prevState };
+export function updateTrackerState(prevState: TrackerState, action: TrackerAction): TrackerState {
 	switch (action.action) {
 		case "addMonster":
-			addMonster(newState, action.monsterClass);
-			break;
+			return prevState.withMonster(action.monsterClass);
 		case "addCharacter":
-			addCharacter(newState, action.name, action.characterClass, true);
-			break;
+			return prevState.withCharacter(action.name, action.characterClass, true);
 		case "addSummon":
-			addSummon(newState, action.characterClass, action.summonClass);
-			break;
+			return prevState.withSummon(action.characterClass, action.summonClass);
 		case "addAlly":
-			addAlly(newState, action.name);
-			break;
+			return prevState.withAlly(action.name);
 		case "deleteTrackedClass":
-			deleteTrackedClass(newState, action.id);
-			break;
+			return prevState.withoutTrackedClass(action.id);
 		case "deleteSummon":
-			deleteSummon(newState, action.characterId, action.summonId);
-			break;
+			return prevState.withoutSummon(action.characterId, action.summonId);
 		case "setInitiative":
-			setInitiative(newState, action.id, action.value);
-			break;
+			return prevState.withClassInitiative(action.id, action.value);
 		case "setTurnComplete":
-			setTurnComplete(newState, action.id, action.value);
-			break;
+			return prevState.withClassTurnComplete(action.id, action.value);
 		case "resetForNewRound":
-			resetForNewRound(newState);
-			break;
+			return prevState.resetForNewRound();
 		case "beginRound":
-			beginRound(newState);
-			break;
+			return prevState.beginRound();
 		case "shift":
-			shift(newState, action.id, action.direction);
-			break;
+			return prevState.withCharacterShifted(action.id, action.direction);
 	}
-	return newState;
 }
 
-function addMonster(state: ITrackerState, monsterClassId: MonsterClass): boolean {
-	if (!(monsterClassId in MonsterClass)) {
-		return false;
-	}
-	const newMonster: IMonster = {
-		type: TrackableClassType.monster,
-		id: state.nextId++,
-		name: getMonsterName(monsterClassId),
-		monsterClass: monsterClassId,
-	};
-	state.trackedClassesById = new Map(state.trackedClassesById).set(newMonster.id, newMonster);
-	state.orderedIds = [...state.orderedIds, newMonster.id];
-	updateOnTrackedClassesChanged(state);
-	return true;
-}
+export class TrackerState implements ITrackerStateInternal {
+	public readonly trackedClassesById: ImmutableMap<number, ITrackableClass>;
+	public readonly orderedIds: readonly number[];
+	public readonly nextId: number;
+	public readonly phase: RoundPhase;
+	public readonly tieExists: boolean;
 
-function addCharacter(state: ITrackerState, name: string, characterClassId: CharacterClass, addAutoSummons?: boolean): boolean {
-	if (!(characterClassId in CharacterClass)) {
-		return false;
-	}
-	const newCharacter: ICharacter = {
-		type: TrackableClassType.character,
-		id: state.nextId++,
-		name,
-		characterClass: characterClassId,
-		iconKey: getCharacterIcon(characterClassId),
-	};
-
-	state.trackedClassesById = new Map(state.trackedClassesById).set(newCharacter.id, newCharacter);
-	state.orderedIds = [...state.orderedIds, newCharacter.id];
-	updateOnTrackedClassesChanged(state);
-
-	if (addAutoSummons) {
-		getCharacterAutoSummons(characterClassId).forEach(autoSummon => addSummon(state, characterClassId, autoSummon));
-	}
-	return true;
-}
-
-function addAlly(state: ITrackerState, name: string): boolean {
-	const newAlly: IAlly = {
-		type: TrackableClassType.ally,
-		id: state.nextId++,
-		name,
-	};
-
-	state.trackedClassesById = new Map(state.trackedClassesById).set(newAlly.id, newAlly);
-	state.orderedIds = [...state.orderedIds, newAlly.id];
-	updateOnTrackedClassesChanged(state);
-	return true;
-}
-
-function addSummon(state: ITrackerState, characterClass: CharacterClass, summonClass: SummonClass): boolean {
-	let character = getCharacterByClassId(state, characterClass);
-	if (!character) {
-		return false;
+	private constructor(fromState: ITrackerStateInternal) {
+		this.nextId = fromState.nextId;
+		this.trackedClassesById = fromState.trackedClassesById;
+		this.orderedIds = fromState.orderedIds;
+		this.phase = fromState.phase;
+		this.tieExists = fromState.tieExists;
 	}
 
-	const activeSummons = character.activeSummons ? [...character.activeSummons] : [];
-	activeSummons.push({
-		type: TrackableClassType.summon,
-		id: state.nextId++,
-		characterId: character.id,
-		summonClass,
-		name: getSummonName(summonClass),
-		turnComplete: state.phase === RoundPhase.initiativesChosen,
-	});
-	const newCharacter = {
-		...character,
-		activeSummons,
-	};
-	const newTrackedClassesById = new Map(state.trackedClassesById).set(character.id, newCharacter);
-	state.trackedClassesById = newTrackedClassesById;
-	return true;
-}
+	public static createEmptyState(): TrackerState {
+		return new TrackerState({
+			trackedClassesById: ImmutableMap.empty(),
+			orderedIds: [],
+			nextId: 1,
+			phase: RoundPhase.choosingInitiative,
+			tieExists: false,
+		});
+	}
 
-function deleteSummon(state: ITrackerState, characterId: number, summonId: number): void {
-	let character = state.trackedClassesById.get(characterId);
-	if (character && isCharacter(character)) {
+	public clone(): TrackerState {
+		return new TrackerState(this);
+	}
+
+	//#region adding/removing tracked classes
+
+	public withMonster(monsterClassId: MonsterClass): TrackerState {
+		if (!(monsterClassId in MonsterClass)) {
+			throw new Error("Invalid monster class");
+		}
+		return this.withNewTrackedClass({
+			type: TrackableClassType.monster,
+			name: getMonsterName(monsterClassId),
+			monsterClass: monsterClassId,
+		});
+	}
+
+	public withCharacter(name: string, characterClassId: CharacterClass, addAutoSummons?: boolean): TrackerState {
+		if (!(characterClassId in CharacterClass)) {
+			throw new Error(`Invalid character class: ${characterClassId}`);
+		}
+		let newState = this.withNewTrackedClass({
+			type: TrackableClassType.character,
+			name,
+			characterClass: characterClassId,
+			iconKey: getCharacterIcon(characterClassId),
+		});
+		if (addAutoSummons) {
+			getCharacterAutoSummons(characterClassId).forEach(autoSummon => (newState = newState.withSummon(characterClassId, autoSummon)));
+		}
+		return newState;
+	}
+
+	public withSummon(characterClass: CharacterClass, summonClass: SummonClass): TrackerState {
+		let character = this.getCharacterByClassId(characterClass);
+		if (!character) {
+			throw new Error(`Could not find character of class: ${characterClass}`);
+		}
+
+		const activeSummons = character.activeSummons ? [...character.activeSummons] : [];
+		activeSummons.push({
+			type: TrackableClassType.summon,
+			id: this.nextId,
+			characterId: character.id,
+			summonClass,
+			name: getSummonName(summonClass),
+			turnComplete: this.phase === RoundPhase.initiativesChosen,
+		});
+		const newCharacter = {
+			...character,
+			activeSummons,
+		};
+		const trackedClassesById = this.trackedClassesById.set(character.id, newCharacter);
+		return this.withNewProps({ trackedClassesById, nextId: this.nextId + 1 }, true);
+	}
+
+	public withAlly(name: string): TrackerState {
+		return this.withNewTrackedClass({
+			type: TrackableClassType.ally,
+			name,
+		});
+	}
+
+	public withoutTrackedClass(idToDelete: number): TrackerState {
+		const trackedClassesById = this.trackedClassesById.delete(idToDelete);
+		const orderedIds = this.orderedIds.filter(id => id !== idToDelete);
+		return this.withNewProps({ trackedClassesById, orderedIds });
+	}
+
+	public withoutSummon(characterId: number, summonId: number): TrackerState {
+		let character = this.trackedClassesById.get(characterId);
+		if (!character || !isCharacter(character)) {
+			throw new Error(`Could not find character with id: ${characterId}`);
+		}
 		const newCharacter = {
 			...character,
 			activeSummons: character.activeSummons?.filter(summon => summon.id !== summonId),
 		};
-		const newTrackedClassesById = new Map(state.trackedClassesById).set(character.id, newCharacter);
-		state.trackedClassesById = newTrackedClassesById;
+		const trackedClassesById = this.trackedClassesById.set(character.id, newCharacter);
+		return this.withNewProps({ trackedClassesById }, true);
 	}
-}
 
-function deleteTrackedClass(state: ITrackerState, idToDelete: number): void {
-	const newTrackedClassesById = new Map(state.trackedClassesById);
-	newTrackedClassesById.delete(idToDelete);
-	state.trackedClassesById = newTrackedClassesById;
-	state.orderedIds = state.orderedIds.filter(id => id !== idToDelete);
-	updateOnTrackedClassesChanged(state);
-}
-
-function setInitiative(state: ITrackerState, id: number, value: number | undefined): void {
-	const trackedClass = state.trackedClassesById.get(id);
-	if (trackedClass) {
-		state.trackedClassesById = new Map(state.trackedClassesById).set(id, { ...trackedClass, initiative: value });
+	private withNewTrackedClass<T extends Omit<ITrackableClass, "id">>(newTrackedClass: T): TrackerState {
+		const id = this.nextId;
+		const trackedClassesById = this.trackedClassesById.set(id, { ...newTrackedClass, id });
+		const orderedIds = [...this.orderedIds, id];
+		return this.withNewProps({
+			nextId: id + 1,
+			trackedClassesById,
+			orderedIds,
+		});
 	}
-	updateTieProps(state);
-}
 
-function setTurnComplete(state: ITrackerState, id: number, value: boolean): void {
-	const trackedClass = state.trackedClassesById.get(id);
-	if (trackedClass) {
-		state.trackedClassesById = new Map(state.trackedClassesById).set(id, { ...trackedClass, turnComplete: value });
-	} else {
-		setSummonTurnComplete(state, id, value);
+	//#endregion adding/removing tracked classes
+
+	//#region round/initiative
+	public withClassInitiative(id: number, value: number | undefined): TrackerState {
+		const trackedClass = this.trackedClassesById.get(id);
+		if (!trackedClass) {
+			throw new Error(`Could not find tracked class with id: ${id}`);
+		}
+		const trackedClassesById = this.trackedClassesById.set(id, { ...trackedClass, initiative: value });
+		return this.withNewProps({ trackedClassesById });
 	}
-}
 
-function setSummonTurnComplete(state: ITrackerState, id: number, value: boolean): void {
-	const character = Array.from(state.trackedClassesById.values())
-		.filter(isCharacter)
-		.find(c => c.activeSummons?.some(s => s.id === id));
-	if (character) {
+	public withClassTurnComplete(id: number, value: boolean): TrackerState {
+		const trackedClass = this.trackedClassesById.get(id);
+		if (trackedClass) {
+			const trackedClassesById = this.trackedClassesById.set(id, { ...trackedClass, turnComplete: value });
+			return this.withNewProps({ trackedClassesById });
+		}
+
+		// If there isn't an entry in trackedClassesById, it must be a summon
+		const character = Array.from(this.trackedClassesById.values())
+			.filter(isCharacter)
+			.find(tc => tc.activeSummons?.some(s => s.id === id));
+		if (!character) {
+			throw new Error(`No tracked class found with id: ${id}`);
+		}
+
 		const newCharacter = {
 			...character,
 			activeSummons: character.activeSummons?.map(s => {
@@ -275,80 +280,98 @@ function setSummonTurnComplete(state: ITrackerState, id: number, value: boolean)
 				return s;
 			}),
 		};
-		const newTrackedClassesById = new Map(state.trackedClassesById).set(character.id, newCharacter);
-		state.trackedClassesById = newTrackedClassesById;
+		const trackedClassesById = this.trackedClassesById.set(character.id, newCharacter);
+		return this.withNewProps({ trackedClassesById });
 	}
-}
 
-function resetForNewRound(state: ITrackerState): void {
-	const newTrackedClassesById = new Map(state.trackedClassesById);
-	state.trackedClassesById.forEach((tc, id) => {
-		if (isCharacter(tc)) {
-			tc.activeSummons = tc.activeSummons?.map(s => ({ ...s, turnComplete: false }));
-		}
-		newTrackedClassesById.set(id, { ...tc, initiative: undefined, turnComplete: false });
-	});
-	state.trackedClassesById = newTrackedClassesById;
-	state.phase = RoundPhase.choosingInitiative;
-	state.tieExistsBetweenAny = false;
-}
-
-function beginRound(state: ITrackerState): void {
-	const newTrackedClassesById = new Map(state.trackedClassesById);
-	state.trackedClassesById.forEach((tc, id) => {
-		newTrackedClassesById.set(id, { ...tc, initiative: tc.initiative ?? 99 });
-	});
-	state.trackedClassesById = newTrackedClassesById;
-	state.orderedIds = [...Array.from(state.trackedClassesById.values())]
-		.sort((a, b) => (a.initiative ?? 99) - (b.initiative ?? 99))
-		.map(tc => tc.id);
-	updateTieProps(state);
-	state.phase = RoundPhase.initiativesChosen;
-}
-
-function shift(state: ITrackerState, id: number, direction: "up" | "down"): void {
-	const index1 = state.orderedIds.indexOf(id);
-	const index2 = direction === "up" ? index1 - 1 : index1 + 1;
-	const id2 = state.orderedIds[index2];
-	const newOrderedIds = [...state.orderedIds];
-	newOrderedIds[index1] = id2;
-	newOrderedIds[index2] = id;
-	state.orderedIds = newOrderedIds;
-	updateTieProps(state);
-}
-
-function updateTieProps(state: ITrackerState): void {
-	state.tieExistsBetweenAny = false;
-	for (let i = 0; i < state.orderedIds.length; i++) {
-		const tc = state.trackedClassesById.get(state.orderedIds[i]);
-
-		const prev = i > 0 ? state.trackedClassesById.get(state.orderedIds[i - 1]) : undefined;
-		const next = i < state.orderedIds.length ? state.trackedClassesById.get(state.orderedIds[i + 1]) : undefined;
-		if (!tc) {
-			throw new Error("tracker state corruption detected");
-		}
-
-		const newTc: ITrackableClass = {
-			...tc,
-			tiedWithPrevious: prev && !!tc.initiative && tc.initiative === prev.initiative,
-			tiedWithNext: next && !!tc.initiative && tc.initiative === next.initiative,
-		};
-		if (newTc.tiedWithNext || newTc.tiedWithPrevious) {
-			state.tieExistsBetweenAny = true;
-		}
-
-		if (!!newTc.tiedWithPrevious !== !!tc.tiedWithPrevious || !!newTc.tiedWithNext !== !!tc.tiedWithNext) {
-			state.trackedClassesById = new Map(state.trackedClassesById).set(tc.id, newTc);
-		}
+	public resetForNewRound(): TrackerState {
+		let trackedClassesById = this.trackedClassesById;
+		this.trackedClassesById.forEach((tc, id) => {
+			if (isCharacter(tc)) {
+				tc.activeSummons = tc.activeSummons?.map(s => ({ ...s, turnComplete: false }));
+			}
+			trackedClassesById = trackedClassesById.set(id, { ...tc, initiative: undefined, turnComplete: false });
+		});
+		return this.withNewProps(
+			{
+				trackedClassesById,
+				phase: RoundPhase.choosingInitiative,
+				tieExists: false,
+			},
+			true
+		);
 	}
-}
 
-function updateOnTrackedClassesChanged(state: ITrackerState): void {
-	updateTieProps(state);
-}
+	public beginRound(): TrackerState {
+		let trackedClassesById = this.trackedClassesById;
+		this.trackedClassesById.forEach((tc, id) => {
+			trackedClassesById = trackedClassesById.set(id, { ...tc, initiative: tc.initiative ?? 99 });
+		});
+		const orderedIds = [...Array.from(this.trackedClassesById.values())]
+			.sort((a, b) => (a.initiative ?? 99) - (b.initiative ?? 99))
+			.map(tc => tc.id);
+		return this.withNewProps({ trackedClassesById, orderedIds, phase: RoundPhase.initiativesChosen });
+	}
 
-function getCharacterByClassId(state: ITrackerState, classId: CharacterClass): ICharacter | undefined {
-	return Array.from(state.trackedClassesById.values())
-		.filter(isCharacter)
-		.find(character => character.characterClass === classId);
+	public withCharacterShifted(id: number, direction: "up" | "down"): TrackerState {
+		const index1 = this.orderedIds.indexOf(id);
+		const index2 = direction === "up" ? index1 - 1 : index1 + 1;
+		const id2 = this.orderedIds[index2];
+		const orderedIds = [...this.orderedIds];
+		orderedIds[index1] = id2;
+		orderedIds[index2] = id;
+		return this.withNewProps({ orderedIds });
+	}
+	//#endregion round/initiative
+
+	public getCharacterByClassId(classId: CharacterClass): ICharacter | undefined {
+		return Array.from(this.trackedClassesById.values())
+			.filter(isCharacter)
+			.find(character => character.characterClass === classId);
+	}
+
+	//#region private helpers
+
+	private withNewProps(newProps: Partial<ITrackerStateInternal>, skipTieCalculation?: boolean): TrackerState {
+		let newState = new TrackerState({
+			trackedClassesById: this.trackedClassesById,
+			orderedIds: this.orderedIds,
+			nextId: this.nextId,
+			phase: this.phase,
+			tieExists: this.tieExists,
+			...newProps,
+		});
+		if (!skipTieCalculation && (this.trackedClassesById !== newProps.trackedClassesById || this.orderedIds !== newProps.orderedIds)) {
+			newState = newState.withUpdatedTieCalculations();
+		}
+		return newState;
+	}
+
+	private withUpdatedTieCalculations(): TrackerState {
+		let tieExists = false;
+		let trackedClassesById = this.trackedClassesById;
+		for (let i = 0; i < this.orderedIds.length; i++) {
+			const tc = this.trackedClassesById.get(this.orderedIds[i]);
+
+			const prev = i > 0 ? this.trackedClassesById.get(this.orderedIds[i - 1]) : undefined;
+			const next = i < this.orderedIds.length ? this.trackedClassesById.get(this.orderedIds[i + 1]) : undefined;
+			if (!tc) {
+				throw new Error("tracker state corruption detected");
+			}
+
+			const tiedWithPrevious = prev && !!tc.initiative && tc.initiative === prev.initiative;
+			const tiedWithNext = next && !!tc.initiative && tc.initiative === next.initiative;
+			if (tiedWithNext || tiedWithPrevious) {
+				tieExists = true;
+			}
+
+			if (!!tiedWithPrevious !== !!tc.tiedWithPrevious || !!tiedWithNext !== !!tc.tiedWithNext) {
+				trackedClassesById = trackedClassesById.set(tc.id, { ...tc, tiedWithNext, tiedWithPrevious });
+			}
+		}
+
+		return this.withNewProps({ trackedClassesById, tieExists }, true);
+	}
+
+	//#endregion private helpers
 }

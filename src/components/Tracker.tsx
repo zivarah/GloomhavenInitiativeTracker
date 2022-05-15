@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import React, { Dispatch, FC, useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useCookies } from "react-cookie";
 import { isAlly } from "../model/Ally";
 import { isCharacter } from "../model/Character";
@@ -9,6 +9,7 @@ import {
 	ICookie,
 	ITrackerState,
 	TrackerAction,
+	TrackerState,
 	updateTrackerState,
 } from "../model/TrackerState";
 import "../styles/Tracker.css";
@@ -19,7 +20,7 @@ import { TrackedClassRow } from "./TrackedClassRow";
 
 export const Tracker: FC = () => {
 	const [cookie, setCookie, removeCookie] = useCookies<keyof ICookie, ICookie>([]);
-	const [state, dispatch] = useReducer<React.Reducer<ITrackerState, TrackerAction>, ICookie>(
+	const [state, dispatch]: [ITrackerState, Dispatch<TrackerAction>] = useReducer<React.Reducer<TrackerState, TrackerAction>, ICookie>(
 		updateTrackerState,
 		cookie,
 		createStateFromCookie
@@ -36,7 +37,6 @@ export const Tracker: FC = () => {
 
 		// Simple and fairly effective deep object comparison, but not perfect.
 		if (JSON.stringify(newCookie.classes) !== JSON.stringify(cookie.classes)) {
-			removeCookie("state");
 			setCookie("classes", newCookie.classes, { expires: expireDate });
 		}
 	}, [setCookie, removeCookie, state, cookie.classes]);
@@ -88,7 +88,7 @@ export const Tracker: FC = () => {
 								trackedClass={trackedClass}
 								showOptions={showOptions}
 								dispatch={dispatch}
-								tieExistsBetweenAny={state.tieExistsBetweenAny}
+								tieExistsBetweenAny={state.tieExists}
 							/>
 						);
 					})}
