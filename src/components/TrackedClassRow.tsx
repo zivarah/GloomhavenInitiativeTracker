@@ -20,9 +20,18 @@ export const TrackedClassRow: FC<ITrackedClassRowProps> = props => {
 
 	const onTurnCompleteChange = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
-			dispatch({ action: "setTurnComplete", id: trackedClass.id, value: event.target.checked });
+			if (isCharSummon) {
+				dispatch({
+					action: "setSummonTurnComplete",
+					id: trackedClass.id,
+					characterId: trackedClass.characterId,
+					value: event.target.checked,
+				});
+			} else {
+				dispatch({ action: "setTurnComplete", id: trackedClass.id, value: event.target.checked });
+			}
 		},
-		[trackedClass, dispatch]
+		[trackedClass, isCharSummon, dispatch]
 	);
 
 	const onDelete = useCallback(() => {

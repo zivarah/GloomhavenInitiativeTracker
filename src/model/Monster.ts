@@ -1,7 +1,7 @@
 import { ITrackableClass, ITrackableClassInfo, TrackableClassType } from "./TrackableClass";
 
 export interface IMonster extends ITrackableClass<TrackableClassType.monster> {
-	monsterClass: MonsterClass;
+	readonly monsterClass: MonsterClass;
 }
 
 export function isMonster(trackableClass: ITrackableClass): trackableClass is IMonster {

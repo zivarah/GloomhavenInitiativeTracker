@@ -1,12 +1,12 @@
 export interface ITrackableClass<TType extends TrackableClassType = TrackableClassType> {
-	type: TType;
-	id: number;
-	name: string;
-	iconKey?: string;
-	initiative?: number;
-	turnComplete?: boolean;
-	tiedWithPrevious?: boolean;
-	tiedWithNext?: boolean;
+	readonly type: TType;
+	readonly id: number;
+	readonly name: string;
+	readonly iconKey?: string;
+	readonly initiative?: number;
+	readonly turnComplete?: boolean;
+	readonly tiedWithPrevious?: boolean;
+	readonly tiedWithNext?: boolean;
 }
 
 export interface ITrackableClassInfo {

@@ -2,8 +2,8 @@ import { ISummon } from "./Summon";
 import { ITrackableClass, ITrackableClassInfo, TrackableClassType } from "./TrackableClass";
 
 export interface ICharacter extends ITrackableClass<TrackableClassType.character> {
-	characterClass: CharacterClass;
-	activeSummons?: readonly ISummon[];
+	readonly characterClass: CharacterClass;
+	readonly activeSummons?: readonly ISummon[];
 }
 
 export function isCharacter(trackableClass: ITrackableClass): trackableClass is ICharacter {

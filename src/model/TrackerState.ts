@@ -47,6 +47,8 @@ export function createStateFromCookie(cookie?: ICookie): TrackerState {
 					return state.withMonster(cc.mc);
 				case TrackableClassType.ally:
 					return state.withAlly(cc.n);
+				default:
+					throw new Error("Invalid cookie");
 			}
 		}, TrackerState.initialState());
 	} catch {
@@ -60,11 +62,12 @@ export function createCookieFromState(state: ITrackerState): ICookie {
 			return [{ t: TrackableClassType.monster, mc: tc.monsterClass }];
 		}
 		if (isCharacter(tc)) {
-			const summons: CookieClass[] = (tc.activeSummons ?? []).map(summon => ({
-				t: TrackableClassType.summon,
-				cc: tc.characterClass,
-				sc: summon.summonClass,
-			}));
+			const summons: CookieClass[] =
+				tc.activeSummons?.map(summon => ({
+					t: TrackableClassType.summon,
+					cc: tc.characterClass,
+					sc: summon.summonClass,
+				})) ?? [];
 			// Summons must always come after the character in the cookie array
 			return [{ t: TrackableClassType.character, cc: tc.characterClass, n: tc.name }, ...summons];
 		}
@@ -88,6 +91,7 @@ export type TrackerAction =
 	| { action: "deleteSummon"; characterId: number; summonId: number }
 	| { action: "setInitiative"; id: number; value: number | undefined }
 	| { action: "setTurnComplete"; id: number; value: boolean }
+	| { action: "setSummonTurnComplete"; id: number; characterId: number; value: boolean }
 	| { action: "resetForNewRound" }
 	| { action: "beginRound" }
 	| { action: "shift"; id: number; direction: "up" | "down" };
@@ -110,6 +114,8 @@ export function updateTrackerState(prevState: TrackerState, action: TrackerActio
 			return prevState.withClassInitiative(action.id, action.value);
 		case "setTurnComplete":
 			return prevState.withClassTurnComplete(action.id, action.value);
+		case "setSummonTurnComplete":
+			return prevState.withSummonTurnComplete(action.id, action.characterId, action.value);
 		case "resetForNewRound":
 			return prevState.resetForNewRound();
 		case "beginRound":
@@ -142,10 +148,6 @@ export class TrackerState implements ITrackerStateInternal {
 			phase: RoundPhase.choosingInitiative,
 			tieExists: false,
 		});
-	}
-
-	public clone(): TrackerState {
-		return new TrackerState(this);
 	}
 
 	//#region adding/removing tracked classes
@@ -251,19 +253,15 @@ export class TrackerState implements ITrackerStateInternal {
 
 	public withClassTurnComplete(id: number, value: boolean): TrackerState {
 		const trackedClass = this.trackedClassesById.get(id);
-		if (trackedClass) {
-			const trackedClassesById = this.trackedClassesById.set(id, { ...trackedClass, turnComplete: value });
-			return this.withNewProps({ trackedClassesById });
-		}
-
-		// If there isn't an entry in trackedClassesById, it must be a summon
-		const character = Array.from(this.trackedClassesById.values())
-			.filter(isCharacter)
-			.find(tc => tc.activeSummons?.some(s => s.id === id));
-		if (!character) {
+		if (!trackedClass) {
 			throw new Error(`No tracked class found with id: ${id}`);
 		}
+		const trackedClassesById = this.trackedClassesById.set(id, { ...trackedClass, turnComplete: value });
+		return this.withNewProps({ trackedClassesById });
+	}
 
+	public withSummonTurnComplete(id: number, characterId: number, value: boolean): TrackerState {
+		const character = this.getCharacter(characterId);
 		const newCharacter = {
 			...character,
 			activeSummons: character.activeSummons?.map(s => {
@@ -278,12 +276,11 @@ export class TrackerState implements ITrackerStateInternal {
 	}
 
 	public resetForNewRound(): TrackerState {
-		let trackedClassesById = this.trackedClassesById;
-		this.trackedClassesById.forEach((tc, id) => {
+		const trackedClassesById = this.trackedClassesById.updateValues(tc => {
 			if (isCharacter(tc)) {
-				tc.activeSummons = tc.activeSummons?.map(s => ({ ...s, turnComplete: false }));
+				tc = { ...tc, activeSummons: tc.activeSummons?.map(s => ({ ...s, turnComplete: false })) } as ICharacter;
 			}
-			trackedClassesById = trackedClassesById.set(id, { ...tc, initiative: undefined, turnComplete: false });
+			return { ...tc, initiative: undefined, turnComplete: false };
 		});
 		return this.withNewProps(
 			{
@@ -296,10 +293,7 @@ export class TrackerState implements ITrackerStateInternal {
 	}
 
 	public beginRound(): TrackerState {
-		let trackedClassesById = this.trackedClassesById;
-		this.trackedClassesById.forEach((tc, id) => {
-			trackedClassesById = trackedClassesById.set(id, { ...tc, initiative: tc.initiative ?? 99 });
-		});
+		const trackedClassesById = this.trackedClassesById.updateValues(tc => ({ ...tc, initiative: tc.initiative ?? 99 }));
 		const orderedIds = [...Array.from(this.trackedClassesById.values())]
 			.sort((a, b) => (a.initiative ?? 99) - (b.initiative ?? 99))
 			.map(tc => tc.id);
@@ -317,16 +311,24 @@ export class TrackerState implements ITrackerStateInternal {
 	}
 	//#endregion round/initiative
 
-	public getCharacterByClassId(classId: CharacterClass): ICharacter | undefined {
+	//#region private helpers
+
+	private getCharacterByClassId(classId: CharacterClass): ICharacter | undefined {
 		return Array.from(this.trackedClassesById.values())
 			.filter(isCharacter)
 			.find(character => character.characterClass === classId);
 	}
 
-	//#region private helpers
+	private getCharacter(id: number): ICharacter {
+		let character = this.trackedClassesById.get(id);
+		if (!character || !isCharacter(character)) {
+			throw new Error(`Could not find character with id: ${id}`);
+		}
+		return character;
+	}
 
 	private withNewProps(newProps: Partial<ITrackerStateInternal>, skipTieCalculation?: boolean): TrackerState {
-		let newState = new TrackerState({
+		const newState = new TrackerState({
 			trackedClassesById: this.trackedClassesById,
 			orderedIds: this.orderedIds,
 			nextId: this.nextId,
@@ -334,10 +336,13 @@ export class TrackerState implements ITrackerStateInternal {
 			tieExists: this.tieExists,
 			...newProps,
 		});
-		if (!skipTieCalculation && (this.trackedClassesById !== newProps.trackedClassesById || this.orderedIds !== newProps.orderedIds)) {
-			newState = newState.withUpdatedTieCalculations();
+		if (skipTieCalculation) {
+			return newState;
 		}
-		return newState;
+		if (this.trackedClassesById === newProps.trackedClassesById && this.orderedIds === newProps.orderedIds) {
+			return newState;
+		}
+		return newState.withUpdatedTieCalculations();
 	}
 
 	private withUpdatedTieCalculations(): TrackerState {

@@ -24,6 +24,15 @@ export class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
 		return new ImmutableMap(map);
 	}
 
+	public updateValues(updateFn: (value: V) => V): ImmutableMap<K, V> {
+		if (this.size === 0) {
+			return this;
+		}
+		const map = new Map();
+		this.forEach((value, key) => map.set(key, updateFn(value)));
+		return new ImmutableMap(map);
+	}
+
 	//#region ReadonlyMap
 	public forEach(callbackfn: (value: V, key: K, map: ReadonlyMap<K, V>) => void, thisArg?: any): void {
 		return this.__map.forEach(callbackfn, thisArg);
