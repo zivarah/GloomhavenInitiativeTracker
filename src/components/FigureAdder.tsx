@@ -125,6 +125,7 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 	const { existingCharacters, existingSummons, dispatch } = props;
 	const [characterClass, setCharacterClass] = useState<CharacterClass>();
 	const [summonClass, setSummonClass] = useState<SummonClass>();
+	const [summonName, setSummonName] = useState<string | undefined>();
 
 	const onCharacterChange = useCallback((value: string | undefined) => {
 		setCharacterClass(parseNumericEnum(CharacterClass, value));
@@ -132,14 +133,18 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 	const onSummonChange = useCallback((value: string | undefined) => {
 		setSummonClass(parseNumericEnum(SummonClass, value));
 	}, []);
+	const onSummonNameChange = useCallback((value: string | undefined) => {
+		setSummonName(value);
+	}, []);
 
 	const onAccept = useCallback(() => {
 		if (characterClass && summonClass) {
-			dispatch({ action: "addSummon", summonClass, characterClass });
+			dispatch({ action: "addSummon", summonClass, characterClass, summonName });
 			setCharacterClass(undefined);
 			setSummonClass(undefined);
+			setSummonName("");
 		}
-	}, [characterClass, summonClass, dispatch]);
+	}, [characterClass, summonClass, summonName, dispatch]);
 
 	const characterOptions = useMemo(
 		(): IOption[] =>
@@ -179,6 +184,13 @@ const SummonAdder: FC<ISummonAdderProps> = props => {
 				disabled={!characterClass}
 			/>
 			<IconButton disabled={!characterClass || !summonClass} onClick={onAccept} iconKey="plus" />
+			{summonClass && (
+				<>
+					<br />
+					<div className="rowSpacer" />
+					<AdderName value={summonName} onChange={onSummonNameChange} />
+				</>
+			)}
 		</div>
 	);
 };

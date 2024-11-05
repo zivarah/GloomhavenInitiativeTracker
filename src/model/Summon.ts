@@ -5,6 +5,7 @@ export interface ISummon extends ITrackableClass<TrackableClassType.summon> {
 	/** The id of the character that summoned this summon */
 	characterId: number;
 	summonClass: SummonClass;
+	summonName?: string;
 }
 
 export function isSummon(trackableClass: ITrackableClass): trackableClass is ISummon {

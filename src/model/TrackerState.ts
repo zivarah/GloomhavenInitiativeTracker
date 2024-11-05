@@ -20,7 +20,7 @@ export interface ICookie {
 type CookieClass =
 	| { t: TrackableClassType.monster; mc: MonsterClass }
 	| { t: TrackableClassType.character; cc: CharacterClass; n: string }
-	| { t: TrackableClassType.summon; cc: CharacterClass; sc: SummonClass }
+	| { t: TrackableClassType.summon; cc: CharacterClass; sc: SummonClass; sn?: string }
 	| { t: TrackableClassType.ally; n: string };
 
 export enum RoundPhase {
@@ -43,7 +43,7 @@ export function createStateFromCookie(cookie?: ICookie): ITrackerState {
 					break;
 				case TrackableClassType.summon:
 					// Safe because summons are always after the character in the cookie array
-					valid = addSummon(state, cc.cc, cc.sc);
+					valid = addSummon(state, cc.cc, cc.sc, cc.sn);
 					break;
 				case TrackableClassType.monster:
 					valid = addMonster(state, cc.mc);
@@ -71,6 +71,7 @@ export function createCookieFromState(state: ITrackerState): ICookie {
 				t: TrackableClassType.summon,
 				cc: tc.characterClass,
 				sc: summon.summonClass,
+				sn: summon.summonName,
 			}));
 			// Summons must always come after the character in the cookie array
 			return [{ t: TrackableClassType.character, cc: tc.characterClass, n: tc.name }, ...summons];
@@ -99,7 +100,7 @@ export type TrackerDispatch = React.Dispatch<TrackerAction>;
 export type TrackerAction =
 	| { action: "addMonster"; monsterClass: MonsterClass }
 	| { action: "addCharacter"; characterClass: CharacterClass; name: string }
-	| { action: "addSummon"; characterClass: CharacterClass; summonClass: SummonClass }
+	| { action: "addSummon"; characterClass: CharacterClass; summonClass: SummonClass; summonName?: string }
 	| { action: "addAlly"; name: string }
 	| { action: "deleteTrackedClass"; id: number }
 	| { action: "deleteSummon"; characterId: number; summonId: number }
@@ -119,7 +120,7 @@ export function updateTrackerState(prevState: ITrackerState, action: TrackerActi
 			addCharacter(newState, action.name, action.characterClass, true);
 			break;
 		case "addSummon":
-			addSummon(newState, action.characterClass, action.summonClass);
+			addSummon(newState, action.characterClass, action.summonClass, action.summonName);
 			break;
 		case "addAlly":
 			addAlly(newState, action.name);
@@ -200,7 +201,7 @@ function addAlly(state: ITrackerState, name: string): boolean {
 	return true;
 }
 
-function addSummon(state: ITrackerState, characterClass: CharacterClass, summonClass: SummonClass): boolean {
+function addSummon(state: ITrackerState, characterClass: CharacterClass, summonClass: SummonClass, summonName?: string): boolean {
 	let character = getCharacterByClassId(state, characterClass);
 	if (!character) {
 		return false;
@@ -212,7 +213,8 @@ function addSummon(state: ITrackerState, characterClass: CharacterClass, summonC
 		id: state.nextId++,
 		characterId: character.id,
 		summonClass,
-		name: getSummonName(summonClass),
+		summonName,
+		name: summonName ?? getSummonName(summonClass),
 		turnComplete: state.phase === RoundPhase.initiativesChosen,
 	});
 	const newCharacter = {
