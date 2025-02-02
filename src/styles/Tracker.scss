@@ -3,6 +3,8 @@
 	grid-template-columns: minmax(265px, max-content);
 	row-gap: 10px;
 	margin: 10px;
+	transform-origin: 0 0;
+	scale: 1.55;
 
 	.trackedClassContainer {
 		display: grid;
