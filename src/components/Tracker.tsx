@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useCookies } from "react-cookie";
 import { isAlly } from "../model/Ally";
 import { isCharacter } from "../model/Character";
@@ -12,7 +12,7 @@ import {
 	updateTrackerState,
 } from "../model/TrackerState";
 import "../styles/Tracker.css";
-import { Button } from "./Buttons";
+import { Button, IconButton } from "./Buttons";
 import { FigureAdder, IExistingClasses } from "./FigureAdder";
 import { IHeaderIconProps, Section } from "./Section";
 import { TrackedClassRow } from "./TrackedClassRow";
@@ -26,6 +26,7 @@ export const Tracker: FC = () => {
 	);
 
 	const [showOptions, setShowOptions] = useState(false);
+	const prevRoundStates = useRef<ITrackerState[]>([]);
 
 	const onMenuClick = useCallback(() => setShowOptions(!showOptions), [showOptions]);
 
@@ -53,9 +54,19 @@ export const Tracker: FC = () => {
 		};
 	}, [state.trackedClassesById]);
 
+	const undoNewRound = useCallback(() => {
+		const prevRoundState = prevRoundStates.current.pop();
+		if (prevRoundState) {
+			dispatch({ action: "setState", state: prevRoundState });
+		}
+	}, [dispatch, prevRoundStates]);
 	const resetForNewRound = useCallback(() => {
+		prevRoundStates.current.push(state);
+		while (prevRoundStates.current.length > 10) {
+			prevRoundStates.current.shift();
+		}
 		dispatch({ action: "resetForNewRound" });
-	}, [dispatch]);
+	}, [dispatch, state]);
 	const beginRound = useCallback(() => {
 		dispatch({ action: "beginRound" });
 	}, [dispatch]);
@@ -94,6 +105,7 @@ export const Tracker: FC = () => {
 					})}
 				</div>
 				<div className="roundActionsOuter">
+					<IconButton iconKey="undo" onClick={undoNewRound} disabled={!prevRoundStates.current.length} />
 					<Button caption="New Round" iconKey="rotate" onClick={resetForNewRound} disabled={noCharacters} />
 					<Button caption="Begin Round" iconKey="play" onClick={beginRound} disabled={noCharacters} />
 				</div>

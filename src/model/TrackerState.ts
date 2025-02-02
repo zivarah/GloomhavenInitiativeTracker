@@ -106,13 +106,17 @@ export type TrackerAction =
 	| { action: "deleteSummon"; characterId: number; summonId: number }
 	| { action: "setInitiative"; id: number; value: number | undefined }
 	| { action: "setTurnComplete"; id: number; value: boolean }
+	| { action: "setState"; state: ITrackerState }
 	| { action: "resetForNewRound" }
 	| { action: "beginRound" }
 	| { action: "shift"; id: number; direction: "up" | "down" };
 
 export function updateTrackerState(prevState: ITrackerState, action: TrackerAction): ITrackerState {
-	const newState = { ...prevState };
+	let newState = { ...prevState };
 	switch (action.action) {
+		case "setState":
+			newState = action.state;
+			break;
 		case "addMonster":
 			addMonster(newState, action.monsterClass);
 			break;
