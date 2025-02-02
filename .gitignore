@@ -12,6 +12,7 @@
 /build
 *.css
 *.css.map
+.sass-cache/
 
 # misc
 .DS_Store
